@@ -15,9 +15,9 @@ a { color:inherit; text-decoration:none; }
 .perspective-picker { margin:32px 0 14px; display:flex; flex-direction:column; align-items:center; gap:12px; }
 .perspective-picker>p { margin:0; color:#74767d; font-size:12px; font-weight:650; text-transform:uppercase; letter-spacing:.1em; }
 .perspective-options { display:flex; padding:4px; gap:3px; background:rgba(232,233,237,.78); border-radius:99px; }
-.perspective-options button { appearance:none; border:0; padding:10px 17px; border-radius:99px; background:transparent; color:#65676e; font:600 12px var(--font-geist-sans); cursor:pointer; transition:background .2s ease,color .2s ease,box-shadow .2s ease; }
-.perspective-options button:hover { color:var(--ink); }
-.perspective-options button.active { color:var(--ink); background:white; box-shadow:0 2px 9px rgba(25,28,35,.1); }
+.perspective-options a { padding:10px 17px; border-radius:99px; background:transparent; color:#65676e; font:600 12px var(--font-geist-sans); cursor:pointer; transition:background .2s ease,color .2s ease,box-shadow .2s ease; }
+.perspective-options a:hover { color:var(--ink); }
+.perspective-options a.active { color:var(--ink); background:white; box-shadow:0 2px 9px rgba(25,28,35,.1); }
 .hero-message { animation:perspective-in .35s ease both; }
 .hero-kicker { margin:24px 0 12px; font-size:clamp(17px,2vw,23px); font-weight:600; letter-spacing:-.025em; }
 .hero h1 { margin:0; font-size:clamp(62px,10.5vw,150px); line-height:.89; letter-spacing:-.075em; font-weight:720; }
@@ -111,7 +111,7 @@ a { color:inherit; text-decoration:none; }
   .nav-links>a:not(.nav-cta) { display:none; }
   .hero { min-height:85vh; }
   .perspective-options { flex-direction:column; width:min(330px,88vw); border-radius:22px; }
-  .perspective-options button { width:100%; }
+  .perspective-options a { width:100%; text-align:center; }
   .dark-story,.light-section,.issue-section,.takeaway-section,.records-section,.method-section { padding-top:95px; padding-bottom:95px; }
   .primary-metric { display:block; }
   .metric-label { margin-top:28px; }

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { getClosureAnalysis } from "../lib/inspections";
-import { PerspectiveHero } from "./PerspectiveHero";
+import { PerspectiveHero, type Perspective } from "./PerspectiveHero";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +12,9 @@ export const metadata: Metadata = {
 
 const formatNumber = new Intl.NumberFormat("en-US");
 
-export default async function Home() {
+export default async function Home({ searchParams }: { searchParams: Promise<{ perspective?: string }> }) {
+  const requestedPerspective = (await searchParams).perspective;
+  const perspective: Perspective = requestedPerspective === "advisor" || requestedPerspective === "support" ? requestedPerspective : "owner";
   const analysis = await getClosureAnalysis();
 
   if (!analysis.ok) {
@@ -42,6 +44,57 @@ export default async function Home() {
 
   const maxViolationCount = Math.max(...topViolations.map((item) => item.count), 1);
   const maxBucketCount = Math.max(...timelineBuckets.map((item) => item.count), 1);
+  const leadingViolation = topViolations[0];
+  const prolongedCount = timelineBuckets.find((bucket) => bucket.label === "31+ days")?.count || 0;
+  const prolongedRate = reopenedCount ? (prolongedCount / reopenedCount) * 100 : 0;
+  const unmatchedCount = closureCount - reopenedCount;
+
+  const view = perspective === "owner" ? {
+    journeyEyebrow: "Your reopening outlook",
+    journeyTitle: <>A closure is a moment.<br />Your reopening is a process.</>,
+    primaryValue: medianDays,
+    primaryLabel: <>median recorded days<br />from closure to reopening</>,
+    stats: [
+      [`${reopeningRate.toFixed(1)}%`, "of recorded closures had a later recorded reopening."],
+      [formatNumber.format(reopenedCount), "restaurant closures were matched to a later reopening."],
+      [`${fastReopeningRate.toFixed(1)}%`, "of matched restaurants reopened within seven recorded days."],
+    ],
+    issueEyebrow: "What owners should prepare for",
+    issueTitle: <>Know what commonly<br />appears at closure.</>,
+    issueCopy: "These frequently recorded codes show the types of conditions owners may need to address—not a personalized checklist or legal determination.",
+    takeaway: <>The data can set expectations.<br />Your plan must fit your inspection.</>,
+    takeawayCopy: "Use comparable timelines and common issues to prepare questions, organize work, and verify your own record with the city.",
+  } : perspective === "advisor" ? {
+    journeyEyebrow: "Case-planning benchmark",
+    journeyTitle: <>Prioritize the pattern.<br />Then plan the recovery.</>,
+    primaryValue: leadingViolation ? `${leadingViolation.rate.toFixed(0)}%` : "—",
+    primaryLabel: <>of closure events included<br />the leading recorded code</>,
+    stats: [
+      [`${medianDays}`, "median recorded days available for coordinating corrective work."],
+      [`${fastReopeningRate.toFixed(1)}%`, "of matched cases reopened within seven recorded days."],
+      [formatNumber.format(topViolations.length), "leading code patterns surfaced for case comparison."],
+    ],
+    issueEyebrow: "Advisor pattern view",
+    issueTitle: <>Start with recurring<br />closure conditions.</>,
+    issueCopy: "Code frequency helps an advisor recognize common closure contexts, while the client’s actual inspection remains the authority for corrective work.",
+    takeaway: <>Frequency guides attention.<br />It does not replace inspection detail.</>,
+    takeawayCopy: "Use the citywide pattern to ask sharper questions, then build the recovery sequence from the client’s cited conditions and official guidance.",
+  } : {
+    journeyEyebrow: "Small-business disruption",
+    journeyTitle: <>Measure the scale.<br />Find prolonged need.</>,
+    primaryValue: formatNumber.format(closureCount),
+    primaryLabel: <>recorded closure events<br />in the current analysis window</>,
+    stats: [
+      [formatNumber.format(unmatchedCount), "closures without a later reopening in the available records."],
+      [`${prolongedRate.toFixed(1)}%`, "of matched recoveries took more than 30 recorded days."],
+      [`${fastReopeningRate.toFixed(1)}%`, "of matched businesses returned within seven recorded days."],
+    ],
+    issueEyebrow: "Where support may concentrate",
+    issueTitle: <>See the conditions<br />behind business disruption.</>,
+    issueCopy: "Frequent closure codes can help support organizations shape education, referrals, and preparedness resources around recurring needs.",
+    takeaway: <>Fast recovery is common.<br />Prolonged disruption still matters.</>,
+    takeawayCopy: "The unmatched and 31-plus-day groups are signals for deeper research into where technical assistance or small-business support may be most valuable.",
+  };
 
   return (
     <main>
@@ -55,17 +108,17 @@ export default async function Home() {
         </div>
       </nav>
 
-      <PerspectiveHero />
+      <PerspectiveHero selected={perspective} />
 
       <section className="dark-story" id="journey">
         <div className="section-intro inverse">
-          <p className="eyebrow">The closure journey</p>
-          <h2>A shutdown is a moment.<br />Reopening is a process.</h2>
+          <p className="eyebrow">{view.journeyEyebrow}</p>
+          <h2>{view.journeyTitle}</h2>
         </div>
         <div className="metric-stage">
           <article className="primary-metric">
-            <p className="metric-value">{medianDays}</p>
-            <p className="metric-label">median recorded days<br />from closure to reopening</p>
+            <p className="metric-value">{view.primaryValue}</p>
+            <p className="metric-label">{view.primaryLabel}</p>
           </article>
           <div className="journey-line" aria-hidden="true">
             <span className="journey-start" />
@@ -79,18 +132,7 @@ export default async function Home() {
         </div>
 
         <div className="stat-grid">
-          <article>
-            <p className="stat-number">{reopeningRate.toFixed(1)}%</p>
-            <p>of recorded closures had a later recorded reopening.</p>
-          </article>
-          <article>
-            <p className="stat-number">{formatNumber.format(reopenedCount)}</p>
-            <p>closure events were matched to a later reopening.</p>
-          </article>
-          <article>
-            <p className="stat-number">{fastReopeningRate.toFixed(1)}%</p>
-            <p>of matched cases reopened within seven recorded days.</p>
-          </article>
+          {view.stats.map(([value, label]) => <article key={label}><p className="stat-number">{value}</p><p>{label}</p></article>)}
         </div>
       </section>
 
@@ -122,12 +164,9 @@ export default async function Home() {
 
       <section className="issue-section" id="issues">
         <div className="section-intro narrow">
-          <p className="eyebrow">What appears at closure</p>
-          <h2>The list is technical.<br />The pattern is clear.</h2>
-          <p className="section-copy">
-            These are the most common violation codes recorded during closure inspections.
-            Each event is counted once per code, even when the source contains repeated rows.
-          </p>
+          <p className="eyebrow">{view.issueEyebrow}</p>
+          <h2>{view.issueTitle}</h2>
+          <p className="section-copy">{view.issueCopy}</p>
         </div>
         <div className="violation-list">
           {topViolations.map((violation, index) => (
@@ -153,11 +192,8 @@ export default async function Home() {
 
       <section className="takeaway-section">
         <p className="eyebrow">The takeaway</p>
-        <h2>A longer violation list<br />doesn’t create a clearer path.</h2>
-        <p>
-          Closure data tells owners what was recorded. It does not tell them what to do first.
-          That gap is where the next product begins: an issue-specific plan for reopening.
-        </p>
+        <h2>{view.takeaway}</h2>
+        <p>{view.takeawayCopy}</p>
         <div className="future-product">
           <span>Next phase</span>
           <strong>Closure-to-Reopening Navigator</strong>
