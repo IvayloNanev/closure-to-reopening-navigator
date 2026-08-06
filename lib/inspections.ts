@@ -10,6 +10,7 @@ type InspectionRow = {
 
 type Event = {
   camis: string;
+  dba: string;
   date: Date;
   action: string;
   codes: Map<string, string>;
@@ -26,6 +27,15 @@ type Analysis = {
   timelineBuckets: Array<{ label: string; count: number }>;
   dateRange: string;
   fetchedAt: string;
+  apiUrl: string;
+  sampleJourneys: Array<{
+    camis: string;
+    name: string;
+    closureDate: string;
+    reopeningDate: string;
+    days: number;
+    codes: string[];
+  }>;
 } | { ok: false; message: string };
 
 const ENDPOINT = "https://data.cityofnewyork.us/resource/43nn-pn8j.json";
@@ -64,7 +74,8 @@ export async function getClosureAnalysis(): Promise<Analysis> {
   });
 
   try {
-    const response = await fetch(`${ENDPOINT}?${params}`, {
+    const apiUrl = `${ENDPOINT}?${params}`;
+    const response = await fetch(apiUrl, {
       headers: { Accept: "application/json" },
       next: { revalidate: 21600 },
     });
@@ -78,6 +89,7 @@ export async function getClosureAnalysis(): Promise<Analysis> {
       if (!eventMap.has(eventKey)) {
         eventMap.set(eventKey, {
           camis: row.camis,
+          dba: row.dba || "Restaurant name unavailable",
           date: new Date(row.inspection_date),
           action: row.action,
           codes: new Map(),
@@ -97,6 +109,14 @@ export async function getClosureAnalysis(): Promise<Analysis> {
 
     const closures: Event[] = [];
     const reopeningDays: number[] = [];
+    const matchedJourneys: Array<{
+      camis: string;
+      name: string;
+      closureDate: string;
+      reopeningDate: string;
+      days: number;
+      codes: string[];
+    }> = [];
     for (const events of eventsByRestaurant.values()) {
       events.sort((a, b) => a.date.getTime() - b.date.getTime());
       events.forEach((event, index) => {
@@ -105,7 +125,17 @@ export async function getClosureAnalysis(): Promise<Analysis> {
         const reopening = events.slice(index + 1).find((candidate) => candidate.action === REOPENED);
         if (reopening) {
           const days = Math.round((reopening.date.getTime() - event.date.getTime()) / 86_400_000);
-          if (days >= 0) reopeningDays.push(days);
+          if (days >= 0) {
+            reopeningDays.push(days);
+            matchedJourneys.push({
+              camis: event.camis,
+              name: event.dba,
+              closureDate: event.date.toISOString().slice(0, 10),
+              reopeningDate: reopening.date.toISOString().slice(0, 10),
+              days,
+              codes: [...event.codes.keys()].sort(),
+            });
+          }
         }
       });
     }
@@ -152,6 +182,8 @@ export async function getClosureAnalysis(): Promise<Analysis> {
       })),
       dateRange: `${start.getUTCFullYear()}–${now.getUTCFullYear()} records`,
       fetchedAt: now.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "America/New_York" }),
+      apiUrl,
+      sampleJourneys: matchedJourneys.sort((a, b) => b.closureDate.localeCompare(a.closureDate)).slice(0, 8),
     };
   } catch (error) {
     return {

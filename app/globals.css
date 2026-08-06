@@ -40,7 +40,7 @@ a { color:inherit; text-decoration:none; }
 .stat-grid article:last-child { border-right:0; }
 .stat-number { margin:0 0 18px; font-size:clamp(44px,6vw,78px); font-weight:650; letter-spacing:-.055em; }
 .stat-grid article>p:last-child { color:#a9abb1; line-height:1.5; max-width:270px; }
-.light-section,.issue-section,.takeaway-section,.method-section { padding:150px max(24px,calc((100vw - 1180px)/2)); }
+.light-section,.issue-section,.takeaway-section,.records-section,.method-section { padding:150px max(24px,calc((100vw - 1180px)/2)); }
 .section-copy { max-width:690px; font-size:20px; line-height:1.5; color:var(--muted); }
 .distribution-card { padding:55px 55px 32px; background:var(--soft); border-radius:32px; }
 .bars { height:430px; display:grid; grid-template-columns:repeat(5,1fr); gap:28px; align-items:end; border-bottom:1px solid #d5d6da; }
@@ -68,6 +68,24 @@ a { color:inherit; text-decoration:none; }
 .future-product span { display:block; font-size:12px; color:var(--blue); text-transform:uppercase; letter-spacing:.1em; font-weight:700; }
 .future-product strong { display:block; margin:12px 0 5px; font-size:24px; letter-spacing:-.035em; }
 .future-product p { margin:0; color:#686a72; }
+.records-section { background:#fff; }
+.records-header { display:grid; grid-template-columns:1.35fr .65fr; gap:60px; align-items:end; margin-bottom:75px; }
+.records-header h2 { margin:0; font-size:clamp(44px,7vw,86px); line-height:1.02; letter-spacing:-.055em; }
+.records-header>p { color:var(--muted); font-size:18px; line-height:1.55; }
+.api-status { display:inline-flex; align-items:center; gap:9px; margin-bottom:32px; padding:9px 13px; border:1px solid #d8dadd; border-radius:99px; font-size:12px; font-weight:650; }
+.api-status span { width:8px; height:8px; background:#35c759; border-radius:50%; box-shadow:0 0 0 4px rgba(53,199,89,.14); }
+.records-table-wrap { overflow-x:auto; border-top:1px solid #d7d8dc; }
+.records-table { width:100%; min-width:960px; border-collapse:collapse; text-align:left; }
+.records-table th { padding:15px 14px; color:#7b7d84; font-size:11px; text-transform:uppercase; letter-spacing:.08em; font-weight:650; }
+.records-table td { padding:23px 14px; border-top:1px solid #e1e2e5; font-size:13px; color:#55575e; }
+.records-table td:first-child,.records-table th:first-child { padding-left:0; }
+.records-table strong { color:var(--ink); font-size:14px; }
+.mono,.codes-cell { font-family:var(--font-geist-mono); font-size:11px!important; }
+.days-chip { display:inline-flex; min-width:35px; height:35px; align-items:center; justify-content:center; color:#073d19; background:#dff8e5; border-radius:50%; font-weight:700; }
+.api-proof { margin-top:36px; padding:26px 0; display:grid; grid-template-columns:1.2fr 1fr auto; align-items:end; gap:35px; border-top:1px solid #d7d8dc; border-bottom:1px solid #d7d8dc; }
+.api-proof span { display:block; margin-bottom:8px; color:#8a8c92; font-size:10px; text-transform:uppercase; letter-spacing:.1em; }
+.api-proof code,.api-proof p { margin:0; font-size:12px; overflow-wrap:anywhere; }
+.api-proof a { color:var(--blue); font-size:13px; font-weight:600; }
 .method-section { background:#0d0e10; color:white; }
 .method-grid { display:grid; grid-template-columns:repeat(2,1fr); margin-top:85px; border-top:1px solid #303136; }
 .method-grid article { padding:38px 40px 50px 0; border-bottom:1px solid #303136; }
@@ -84,7 +102,7 @@ a { color:inherit; text-decoration:none; }
 @media (max-width:760px) {
   .nav-links>a:not(.nav-cta) { display:none; }
   .hero { min-height:85vh; }
-  .dark-story,.light-section,.issue-section,.takeaway-section,.method-section { padding-top:95px; padding-bottom:95px; }
+  .dark-story,.light-section,.issue-section,.takeaway-section,.records-section,.method-section { padding-top:95px; padding-bottom:95px; }
   .primary-metric { display:block; }
   .metric-label { margin-top:28px; }
   .stat-grid { grid-template-columns:1fr; }
@@ -97,6 +115,8 @@ a { color:inherit; text-decoration:none; }
   .method-grid { grid-template-columns:1fr; }
   .method-grid article,.method-grid article:nth-child(even) { padding:30px 0; border-left:0; }
   .source-footer { display:block; }
+  .records-header { grid-template-columns:1fr; }
+  .api-proof { grid-template-columns:1fr; align-items:start; }
   .source-footer a { display:block; margin-top:22px; }
 }
 @media (prefers-reduced-motion:reduce) { html{scroll-behavior:auto} *{transition:none!important} }

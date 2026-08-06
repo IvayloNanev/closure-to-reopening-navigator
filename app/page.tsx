@@ -35,6 +35,8 @@ export default async function Home() {
     timelineBuckets,
     dateRange,
     fetchedAt,
+    apiUrl,
+    sampleJourneys,
   } = analysis;
 
   const maxViolationCount = Math.max(...topViolations.map((item) => item.count), 1);
@@ -47,6 +49,7 @@ export default async function Home() {
         <div className="nav-links">
           <a href="#journey">The journey</a>
           <a href="#issues">The issues</a>
+          <a href="#records">Live records</a>
           <a className="nav-cta" href="#method">View the data</a>
         </div>
       </nav>
@@ -167,6 +170,42 @@ export default async function Home() {
           <span>Next phase</span>
           <strong>Closure-to-Reopening Navigator</strong>
           <p>From inspection rows to a prioritized recovery plan.</p>
+        </div>
+      </section>
+
+      <section className="records-section" id="records">
+        <div className="records-header">
+          <div>
+            <div className="api-status"><span /> API connected</div>
+            <p className="eyebrow">Real records from the source</p>
+            <h2>See what the<br />analysis is built on.</h2>
+          </div>
+          <p>
+            These are recent matched journeys returned by the NYC Open Data API—not demo data.
+            CAMIS is the city’s unique restaurant identifier.
+          </p>
+        </div>
+        <div className="records-table-wrap">
+          <table className="records-table">
+            <thead><tr><th>Restaurant</th><th>CAMIS</th><th>Closed</th><th>Reopened</th><th>Days</th><th>Codes at closure</th></tr></thead>
+            <tbody>
+              {sampleJourneys.map((journey) => (
+                <tr key={`${journey.camis}-${journey.closureDate}`}>
+                  <td><strong>{journey.name}</strong></td>
+                  <td className="mono">{journey.camis}</td>
+                  <td>{journey.closureDate}</td>
+                  <td>{journey.reopeningDate}</td>
+                  <td><span className="days-chip">{journey.days}</span></td>
+                  <td className="codes-cell">{journey.codes.length ? journey.codes.join(" · ") : "—"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="api-proof">
+          <div><span>Endpoint</span><code>data.cityofnewyork.us/resource/43nn-pn8j.json</code></div>
+          <div><span>Response scope</span><p>Closures + reopenings · {dateRange} · up to 50,000 rows</p></div>
+          <a href={apiUrl} target="_blank" rel="noreferrer">Open this exact API response ↗</a>
         </div>
       </section>
 
