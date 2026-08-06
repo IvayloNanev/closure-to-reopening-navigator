@@ -39,8 +39,16 @@ type Analysis = {
 } | { ok: false; message: string };
 
 const ENDPOINT = "https://data.cityofnewyork.us/resource/43nn-pn8j.json";
-const CLOSED = "Establishment Closed by DOHMH.";
-const REOPENED = "Establishment re-opened by DOHMH.";
+const CLOSED = "Establishment Closed by DOHMH";
+const REOPENED = "Establishment re-opened by DOHMH";
+
+function isClosed(action: string) {
+  return action.startsWith(CLOSED);
+}
+
+function isReopened(action: string) {
+  return action.startsWith(REOPENED);
+}
 
 function median(values: number[]) {
   if (!values.length) return 0;
@@ -68,7 +76,7 @@ export async function getClosureAnalysis(): Promise<Analysis> {
   const startDate = start.toISOString().slice(0, 10);
   const params = new URLSearchParams({
     "$select": "camis,dba,inspection_date,inspection_type,action,violation_code,violation_description",
-    "$where": `inspection_date >= '${startDate}T00:00:00.000' AND action in('${CLOSED}','${REOPENED}')`,
+    "$where": `inspection_date >= '${startDate}T00:00:00.000' AND (action like '${CLOSED}%' OR action like '${REOPENED}%')`,
     "$order": "camis,inspection_date",
     "$limit": "50000",
   });
@@ -120,9 +128,9 @@ export async function getClosureAnalysis(): Promise<Analysis> {
     for (const events of eventsByRestaurant.values()) {
       events.sort((a, b) => a.date.getTime() - b.date.getTime());
       events.forEach((event, index) => {
-        if (event.action !== CLOSED) return;
+        if (!isClosed(event.action)) return;
         closures.push(event);
-        const reopening = events.slice(index + 1).find((candidate) => candidate.action === REOPENED);
+        const reopening = events.slice(index + 1).find((candidate) => isReopened(candidate.action));
         if (reopening) {
           const days = Math.round((reopening.date.getTime() - event.date.getTime()) / 86_400_000);
           if (days >= 0) {
