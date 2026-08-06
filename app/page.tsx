@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getClosureAnalysis } from "../lib/inspections";
+import { PerspectiveHero } from "./PerspectiveHero";
 
 export const dynamic = "force-dynamic";
 
@@ -54,16 +55,7 @@ export default async function Home() {
         </div>
       </nav>
 
-      <section className="hero" id="top">
-        <div className="live-pill"><span /> Connected to NYC Open Data</div>
-        <p className="hero-kicker">After a restaurant closes, every day matters.</p>
-        <h1>Most reopen.<br /><span>Six days is the middle.</span></h1>
-        <p className="hero-copy">
-          A live look at recorded restaurant closures and reopenings across New York City—
-          transformed from thousands of technical inspection rows into one human story.
-        </p>
-        <a className="text-link" href="#journey">Explore the insight <span aria-hidden="true">↓</span></a>
-      </section>
+      <PerspectiveHero />
 
       <section className="dark-story" id="journey">
         <div className="section-intro inverse">

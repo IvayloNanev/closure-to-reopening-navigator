@@ -12,12 +12,20 @@ a { color:inherit; text-decoration:none; }
 .hero { min-height:calc(100vh - 54px); padding:10vh 24px 9vh; text-align:center; display:flex; flex-direction:column; align-items:center; justify-content:center; background:radial-gradient(circle at 50% 65%, #eef6ff 0, #fff 45%); }
 .live-pill { display:flex; align-items:center; gap:8px; padding:8px 13px; border:1px solid #d8d8dc; border-radius:99px; font-size:12px; color:#51535a; background:rgba(255,255,255,.72); }
 .live-pill span { width:7px; height:7px; border-radius:50%; background:#35c759; box-shadow:0 0 0 4px rgba(53,199,89,.13); }
-.hero-kicker { margin:38px 0 12px; font-size:clamp(17px,2vw,23px); font-weight:600; letter-spacing:-.025em; }
+.perspective-picker { margin:32px 0 14px; display:flex; flex-direction:column; align-items:center; gap:12px; }
+.perspective-picker>p { margin:0; color:#74767d; font-size:12px; font-weight:650; text-transform:uppercase; letter-spacing:.1em; }
+.perspective-options { display:flex; padding:4px; gap:3px; background:rgba(232,233,237,.78); border-radius:99px; }
+.perspective-options button { appearance:none; border:0; padding:10px 17px; border-radius:99px; background:transparent; color:#65676e; font:600 12px var(--font-geist-sans); cursor:pointer; transition:background .2s ease,color .2s ease,box-shadow .2s ease; }
+.perspective-options button:hover { color:var(--ink); }
+.perspective-options button.active { color:var(--ink); background:white; box-shadow:0 2px 9px rgba(25,28,35,.1); }
+.hero-message { animation:perspective-in .35s ease both; }
+.hero-kicker { margin:24px 0 12px; font-size:clamp(17px,2vw,23px); font-weight:600; letter-spacing:-.025em; }
 .hero h1 { margin:0; font-size:clamp(62px,10.5vw,150px); line-height:.89; letter-spacing:-.075em; font-weight:720; }
 .hero h1 span { color:#a7a9af; }
 .hero-copy { max-width:720px; margin:38px auto 24px; font-size:clamp(18px,2vw,24px); line-height:1.45; color:#585b62; letter-spacing:-.025em; }
 .text-link { color:var(--blue); font-size:17px; font-weight:550; }
 .text-link span { margin-left:7px; }
+@keyframes perspective-in { from{opacity:0;transform:translateY(7px)} to{opacity:1;transform:none} }
 .dark-story { padding:150px max(24px,calc((100vw - 1180px)/2)); background:#050506; color:white; border-radius:38px 38px 0 0; }
 .section-intro { max-width:900px; margin-bottom:80px; }
 .section-intro.narrow { max-width:750px; }
@@ -102,6 +110,8 @@ a { color:inherit; text-decoration:none; }
 @media (max-width:760px) {
   .nav-links>a:not(.nav-cta) { display:none; }
   .hero { min-height:85vh; }
+  .perspective-options { flex-direction:column; width:min(330px,88vw); border-radius:22px; }
+  .perspective-options button { width:100%; }
   .dark-story,.light-section,.issue-section,.takeaway-section,.records-section,.method-section { padding-top:95px; padding-bottom:95px; }
   .primary-metric { display:block; }
   .metric-label { margin-top:28px; }
