@@ -6,9 +6,16 @@ const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Six Days — NYC Restaurant Closure Data",
-  description: "A live visualization of NYC restaurant closures and recorded reopenings.",
+  metadataBase: new URL("https://six-days-nyc.ethannanev.chatgpt.site"),
+  title: "Six Days — Restaurant Reopening Service",
+  description: "Affordable online support for NYC restaurants preparing to reopen after a DOHMH closure.",
   icons: { icon: "/favicon.svg", shortcut: "/favicon.svg" },
+  openGraph: {
+    title: "Six Days — Restaurant Reopening Service",
+    description: "Affordable online support for NYC restaurants preparing to reopen after a DOHMH closure.",
+    images: [{ url: "/og.png", width: 1536, height: 909, alt: "Six Days restaurant reopening support" }],
+  },
+  twitter: { card: "summary_large_image", images: ["/og.png"] },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
