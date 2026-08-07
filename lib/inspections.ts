@@ -1,6 +1,7 @@
 type InspectionRow = {
   camis: string;
   dba?: string;
+  boro?: string;
   inspection_date: string;
   inspection_type?: string;
   action: string;
@@ -11,6 +12,7 @@ type InspectionRow = {
 type Event = {
   camis: string;
   dba: string;
+  borough: string;
   date: Date;
   action: string;
   codes: Map<string, string>;
@@ -36,11 +38,96 @@ type Analysis = {
     days: number;
     codes: string[];
   }>;
+  benchmarkRecords: Array<{
+    borough: string;
+    closureDate: string;
+    reopeningDays: number | null;
+    codes: string[];
+  }>;
 } | { ok: false; message: string };
 
 const ENDPOINT = "https://data.cityofnewyork.us/resource/43nn-pn8j.json";
 const CLOSED = "Establishment Closed by DOHMH";
 const REOPENED = "Establishment re-opened by DOHMH";
+const BOROUGH_BOUNDARIES = "https://data.cityofnewyork.us/resource/gthc-hcne.geojson?$limit=10";
+
+export type BoroughMapPath = {
+  name: string;
+  path: string;
+  labelX: number;
+  labelY: number;
+};
+
+type Position = [number, number];
+type BoroughFeature = {
+  properties: { boroname?: string };
+  geometry: { type: "Polygon" | "MultiPolygon"; coordinates: Position[][] | Position[][][] };
+};
+
+export async function getBoroughMap(): Promise<BoroughMapPath[]> {
+  try {
+    const response = await fetch(BOROUGH_BOUNDARIES, { next: { revalidate: 604800 } });
+    if (!response.ok) return [];
+    const collection = await response.json() as { features?: BoroughFeature[] };
+    const features = collection.features || [];
+    const allPoints: Position[] = [];
+    const polygonsByName = new Map<string, Position[][][]>();
+
+    for (const feature of features) {
+      const name = feature.properties.boroname;
+      if (!name) continue;
+      const polygons = feature.geometry.type === "Polygon"
+        ? [feature.geometry.coordinates as Position[][]]
+        : feature.geometry.coordinates as Position[][][];
+      polygonsByName.set(name, polygons);
+      polygons.forEach((polygon) => polygon.forEach((ring) => allPoints.push(...ring)));
+    }
+    if (!allPoints.length) return [];
+
+    const minLon = Math.min(...allPoints.map(([lon]) => lon));
+    const maxLon = Math.max(...allPoints.map(([lon]) => lon));
+    const minLat = Math.min(...allPoints.map(([, lat]) => lat));
+    const maxLat = Math.max(...allPoints.map(([, lat]) => lat));
+    const width = 720;
+    const height = 430;
+    const padding = 18;
+    const scale = Math.min((width - padding * 2) / (maxLon - minLon), (height - padding * 2) / (maxLat - minLat));
+    const mapWidth = (maxLon - minLon) * scale;
+    const mapHeight = (maxLat - minLat) * scale;
+    const offsetX = (width - mapWidth) / 2;
+    const offsetY = (height - mapHeight) / 2;
+    const project = ([lon, lat]: Position): Position => [
+      offsetX + (lon - minLon) * scale,
+      offsetY + (maxLat - lat) * scale,
+    ];
+
+    return [...polygonsByName.entries()].map(([name, polygons]) => {
+      const projected = polygons.map((polygon) => polygon.map((ring) => ring.map(project)));
+      const path = projected.map((polygon) => polygon.map((ring) => {
+        const step = Math.max(1, Math.ceil(ring.length / 220));
+        const points = ring.filter((_, index) => index % step === 0 || index === ring.length - 1);
+        return points.map(([x, y], index) => `${index ? "L" : "M"}${x.toFixed(1)},${y.toFixed(1)}`).join("") + "Z";
+      }).join("")).join("");
+      const featurePoints = projected.flat(2);
+      const featureMinX = Math.min(...featurePoints.map(([x]) => x));
+      const featureMaxX = Math.max(...featurePoints.map(([x]) => x));
+      const featureMinY = Math.min(...featurePoints.map(([, y]) => y));
+      const featureMaxY = Math.max(...featurePoints.map(([, y]) => y));
+      const labelAdjustments: globalThis.Record<string, Position> = {
+        Manhattan: [0, 22], Brooklyn: [-4, 12], Queens: [5, 0], Bronx: [0, -4], "Staten Island": [0, 0],
+      };
+      const [adjustX, adjustY] = labelAdjustments[name] || [0, 0];
+      return {
+        name,
+        path,
+        labelX: (featureMinX + featureMaxX) / 2 + adjustX,
+        labelY: (featureMinY + featureMaxY) / 2 + adjustY,
+      };
+    });
+  } catch {
+    return [];
+  }
+}
 
 function isClosed(action: string) {
   return action.startsWith(CLOSED);
@@ -75,7 +162,7 @@ export async function getClosureAnalysis(): Promise<Analysis> {
   const start = new Date(Date.UTC(now.getUTCFullYear() - 4, 0, 1));
   const startDate = start.toISOString().slice(0, 10);
   const params = new URLSearchParams({
-    "$select": "camis,dba,inspection_date,inspection_type,action,violation_code,violation_description",
+    "$select": "camis,dba,boro,inspection_date,inspection_type,action,violation_code,violation_description",
     "$where": `inspection_date >= '${startDate}T00:00:00.000' AND (action like '${CLOSED}%' OR action like '${REOPENED}%')`,
     "$order": "camis,inspection_date",
     "$limit": "50000",
@@ -98,6 +185,7 @@ export async function getClosureAnalysis(): Promise<Analysis> {
         eventMap.set(eventKey, {
           camis: row.camis,
           dba: row.dba || "Restaurant name unavailable",
+          borough: row.boro && row.boro !== "0" ? row.boro : "Borough unavailable",
           date: new Date(row.inspection_date),
           action: row.action,
           codes: new Map(),
@@ -117,6 +205,12 @@ export async function getClosureAnalysis(): Promise<Analysis> {
 
     const closures: Event[] = [];
     const reopeningDays: number[] = [];
+    const benchmarkRecords: Array<{
+      borough: string;
+      closureDate: string;
+      reopeningDays: number | null;
+      codes: string[];
+    }> = [];
     const matchedJourneys: Array<{
       camis: string;
       name: string;
@@ -131,9 +225,11 @@ export async function getClosureAnalysis(): Promise<Analysis> {
         if (!isClosed(event.action)) return;
         closures.push(event);
         const reopening = events.slice(index + 1).find((candidate) => isReopened(candidate.action));
+        let recordedDays: number | null = null;
         if (reopening) {
           const days = Math.round((reopening.date.getTime() - event.date.getTime()) / 86_400_000);
           if (days >= 0) {
+            recordedDays = days;
             reopeningDays.push(days);
             matchedJourneys.push({
               camis: event.camis,
@@ -145,6 +241,12 @@ export async function getClosureAnalysis(): Promise<Analysis> {
             });
           }
         }
+        benchmarkRecords.push({
+          borough: event.borough,
+          closureDate: event.date.toISOString().slice(0, 10),
+          reopeningDays: recordedDays,
+          codes: [...event.codes.keys()].sort(),
+        });
       });
     }
 
@@ -192,6 +294,7 @@ export async function getClosureAnalysis(): Promise<Analysis> {
       fetchedAt: now.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "America/New_York" }),
       apiUrl,
       sampleJourneys: matchedJourneys.sort((a, b) => b.closureDate.localeCompare(a.closureDate)).slice(0, 8),
+      benchmarkRecords,
     };
   } catch (error) {
     return {

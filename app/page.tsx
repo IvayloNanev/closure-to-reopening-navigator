@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
-import { getClosureAnalysis } from "../lib/inspections";
+import { getBoroughMap, getClosureAnalysis } from "../lib/inspections";
 import { BookChapters } from "./BookChapters";
 import { IntakeForm } from "./IntakeForm";
 import { SiteNav } from "./SiteNav";
+import { ReopeningBenchmarkExplorer } from "./ReopeningBenchmarkExplorer";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -13,7 +14,7 @@ export const metadata: Metadata = {
 const number = new Intl.NumberFormat("en-US");
 
 export default async function Home() {
-  const analysis = await getClosureAnalysis();
+  const [analysis, boroughMap] = await Promise.all([getClosureAnalysis(), getBoroughMap()]);
   const data = analysis.ok ? analysis : null;
   const closureCount = data?.closureCount ?? 0;
   const reopeningRate = data?.reopeningRate ?? 0;
@@ -53,6 +54,11 @@ export default async function Home() {
           <div className="chapter-heading"><div><p className="eyebrow">The median is only the center</p><h2>Not every recovery moves at the same speed.</h2></div><p>The distribution reveals the range: many restaurants return quickly, while others remain away from the record much longer.</p></div>
           <div className="distribution-visual" role="img" aria-label="Distribution of matched days from recorded closure to reopening">{timelineBuckets.map((bucket) => <div className="distribution-bar" key={bucket.label}><div><i style={{ height: `${Math.max(7, bucket.count / maxBucket * 100)}%` }}><span>{number.format(bucket.count)}</span></i></div><p>{bucket.label}</p></div>)}</div>
           <p className="data-caption"><span /> Matched closure-to-reopening events from NYC Open Data</p>
+          {data && <>
+            <div className="benchmark-divider"><span>Personalize the citywide insight</span></div>
+            <div className="chapter-heading benchmark-heading"><div><p className="eyebrow">Reopening benchmark explorer</p><h2>See the pattern closest to your closure.</h2></div><p>Filter the same closure-event analysis by place, issue, and year—then check how complete the public record is.</p></div>
+            <ReopeningBenchmarkExplorer records={data.benchmarkRecords} boroughMap={boroughMap} />
+          </>}
         </section>
 
         <section className="book-chapter pattern-chapter">
