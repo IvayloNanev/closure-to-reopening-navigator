@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getBoroughMap, getClosureAnalysis } from "../lib/inspections";
 import { BookChapters } from "./BookChapters";
+import { ChainReactionDemo } from "./ChainReactionDemo";
 import { IntakeForm } from "./IntakeForm";
 import { RestaurantFinder } from "./RestaurantFinder";
 import { ReopeningBenchmarkExplorer } from "./ReopeningBenchmarkExplorer";
@@ -13,13 +14,14 @@ const number = new Intl.NumberFormat("en-US");
 export default async function Home() {
   const [analysis, boroughMap] = await Promise.all([getClosureAnalysis(), getBoroughMap()]);
   const data = analysis.ok ? analysis : null;
+  const sample = data?.restaurantRecords.find((item) => item.reopeningDays !== null && item.codes.length >= 3) ?? data?.restaurantRecords[0];
   return <main>
     <SiteNav />
     <header className="new-hero journey-hero" id="top">
       <div className="hero-mark" aria-hidden="true">6</div>
       <div className="hero-content"><p className="live-label"><i/> LIVE NYC RESTAURANT CLOSURE RECORDS</p><p className="hero-overline">From closure record to what happens next.</p><h1>Your reopening story,<br/><em>in six clear steps.</em></h1><p>Six Days turns a technical public record into a guided evidence journey. Each step answers one question a restaurant owner needs to understand.</p>
-        <div className="journey-chain">{[["01","Find","Why was I closed?","find"],["02","Compare","What happened to similar cases?","compare"],["03","Prioritize","Which conditions returned?","repeat"],["04","Observe","What changed at reopening?","change"],["05","Time","How long did it take?","timeline"],["06","Follow","What was recorded next?","monitor"]].map(([n,title,copy,id],index)=><a href={`#${id}`} key={n} className="journey-card"><span>{n}</span><strong>{title}</strong><p>{copy}</p>{index<5&&<i aria-hidden="true">→</i>}</a>)}</div>
-        <a href="#find" className="start-button">Start with my restaurant <span>↓</span></a>
+        {data&&sample?<ChainReactionDemo sample={sample} benchmarks={data.benchmarkRecords} repeats={data.repeatClosurePatterns}/>:<Unavailable/>}
+        <a href="#find" className="start-button">Now test my restaurant <span>↓</span></a>
       </div>
     </header>
 
