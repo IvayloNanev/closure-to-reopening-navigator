@@ -32,6 +32,7 @@ function percent(value: number, total: number) {
 }
 
 export function ReopeningBenchmarkExplorer({ records, boroughMap }: { records: Record[]; boroughMap: BoroughMapPath[] }) {
+  const [now] = useState(() => Date.now());
   const [borough, setBorough] = useState("All boroughs");
   const [code, setCode] = useState("All violations");
   const [year, setYear] = useState("All years");
@@ -80,7 +81,7 @@ export function ReopeningBenchmarkExplorer({ records, boroughMap }: { records: R
   const med = median(matchedDays);
   const smallSample = filtered.length > 0 && filtered.length < 30;
   const delayMetrics = [7, 14, 30].map((days) => {
-    const cutoff = Date.now() - days * 86_400_000;
+    const cutoff = now - days * 86_400_000;
     const eligible = filtered.filter((item) => new Date(`${item.closureDate}T00:00:00Z`).getTime() <= cutoff);
     return {
       days,
