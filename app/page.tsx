@@ -15,12 +15,17 @@ export default async function Home() {
   const data = analysis.ok ? analysis : null;
   return <main>
     <SiteNav />
-    <header className="new-hero search-hero" id="top">
+    <header className="new-hero journey-hero" id="top">
       <div className="hero-mark" aria-hidden="true">6</div>
-      <div className="hero-content"><p className="live-label"><i/> STEP 01 · LIVE NYC RESTAURANT CLOSURE RECORDS</p><p className="hero-overline">Start with your official record.</p><h1>Why was my restaurant<br/><em>closed?</em></h1><p>Find your restaurant to see the closure date, violations, recorded reopening status, and what NYC’s public data says happened next.</p>{data ? <RestaurantFinder restaurants={data.restaurantRecords}/> : <Unavailable/>}<a href="#compare" className="journey-link">Then compare my case with other restaurants <span>↓</span></a></div>
+      <div className="hero-content"><p className="live-label"><i/> LIVE NYC RESTAURANT CLOSURE RECORDS</p><p className="hero-overline">From closure record to what happens next.</p><h1>Your reopening story,<br/><em>in six clear steps.</em></h1><p>Six Days turns a technical public record into a guided evidence journey. Each step answers one question a restaurant owner needs to understand.</p>
+        <div className="journey-chain">{[["01","Find","Why was I closed?","find"],["02","Compare","What happened to similar cases?","compare"],["03","Prioritize","Which conditions returned?","repeat"],["04","Observe","What changed at reopening?","change"],["05","Time","How long did it take?","timeline"],["06","Follow","What was recorded next?","monitor"]].map(([n,title,copy,id],index)=><a href={`#${id}`} key={n} className="journey-card"><span>{n}</span><strong>{title}</strong><p>{copy}</p>{index<5&&<i aria-hidden="true">→</i>}</a>)}</div>
+        <a href="#find" className="start-button">Start with my restaurant <span>↓</span></a>
+      </div>
     </header>
 
     <BookChapters>
+      <section className="book-chapter owner-step" id="find"><Step n="01" title="Find my restaurant" question="Why was my restaurant closed?"/><p className="step-intro">Begin with the official public record. Search recent NYC closure events to see what was recorded—not an interpretation of what happened.</p>{data ? <RestaurantFinder restaurants={data.restaurantRecords}/> : <Unavailable/>}</section>
+
       <section className="book-chapter owner-step context-step" id="compare"><Step n="02" title="Explore the context" question="What happened to similarly closed restaurants?"/><p className="step-intro">Move from your case to its context. Compare closure records by borough, violation, and year, then see the same pattern across NYC.</p>{data ? <ReopeningBenchmarkExplorer records={data.benchmarkRecords} boroughMap={boroughMap}/> : <Unavailable/>}</section>
 
       <section className="book-chapter owner-step dark-step" id="repeat"><Step n="03" title="Learn from repeat closures" question="Which recorded conditions came back?"/><p className="step-intro">For restaurants with a later recorded closure, we compare the violation codes at the first and later closure. Repeated codes become an evidence-based attention list—not repair instructions.</p>
