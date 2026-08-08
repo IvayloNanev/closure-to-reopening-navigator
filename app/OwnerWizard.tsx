@@ -5,7 +5,7 @@ import { groupInspectionRows, matchCohort, recurrenceAnalysis, timelineAnalysis,
 import type { BoroughMapPath } from "../lib/inspections";
 
 const labels=["Find","Compare","Reopening","Repeat closure","Timeline","Latest record"];
-const nextLabels=["Compare this closure","Use these comparable cases","Follow reopened cases","Build my timeline","Follow my live record","Start again"];
+const nextLabels=["Compare this closure","Use these comparable cases","Follow reopened cases","Build my timeline","Check my latest record","Start again"];
 const fmt=new Intl.DateTimeFormat("en-US",{month:"short",day:"numeric",year:"numeric"});
 
 export function OwnerWizard({episodes,events,boroughMap,fetchedAt}:{episodes:ClosureEpisode[];events:InspectionEvent[];boroughMap:BoroughMapPath[];fetchedAt:string}){
@@ -52,10 +52,56 @@ export function OwnerWizard({episodes,events,boroughMap,fetchedAt}:{episodes:Clo
 }
 
 function Stage({current,index,children}:{current:number;index:number;children:React.ReactNode}){return <section className="wizard-card" aria-hidden={current!==index}>{children}</section>}
-function Heading({kicker,title,name}:{kicker:string;title:string;name?:string}){return <div className="card-heading"><div><p className="wizard-kicker">{kicker}</p><h2>{title}</h2></div><span>{name}</span></div>}
+type HelpBriefContent={data:string;analysis:string;learning:string;effect:string;next:string};
+const helpBriefs:Record<string,HelpBriefContent>={
+  "01 · OFFICIAL CLOSURE RECORD":{
+    data:"Your restaurant’s official action, inspection date, score, inspection type, violation codes, and critical flags.",
+    analysis:"Build one closure profile from the official inspection record.",
+    learning:"Why was my restaurant closed, according to NYC Open Data?",
+    effect:"The record helps you organize attention and resources around the problems officially documented in your case.",
+    next:"Use this closure profile to find comparable NYC restaurants.",
+  },
+  "02 · COMPARABLE CLOSURES":{
+    data:"Shared violation codes, violation burden, inspection type, time period, and geography.",
+    analysis:"Match your closure with similar NYC cases and retain one confirmed comparison group.",
+    learning:"What happened to restaurants with closure records similar to mine?",
+    effect:"A relevant comparison group provides more useful context than a single citywide average when evaluating your situation.",
+    next:"Carry these exact restaurant IDs forward to examine their recorded reopenings.",
+  },
+  "03 · REOPENING CHANGES":{
+    data:"Each retained restaurant’s closure record and its next recorded reopening event.",
+    analysis:"Compare violation codes to identify which disappeared, remained, or appeared at reopening.",
+    learning:"What changed in the public records of comparable restaurants before reopening was recorded?",
+    effect:"Commonly remaining codes identify areas that may deserve closer review before your next inspection. The data does not reveal which repairs or services caused reopening.",
+    next:"Follow the same reopened restaurants to determine which recorded problems appeared again.",
+  },
+  "04 · REPEAT-CLOSURE PATTERNS":{
+    data:"The retained restaurants’ reopening records and later recorded closures during an observable 365-day period.",
+    analysis:"Identify later closures and count which violation codes appeared again.",
+    learning:"Which recorded problems recurred among comparable restaurants after reopening?",
+    effect:"Recurring categories indicate areas that may warrant continued operational attention after reopening, but they do not predict that your restaurant will close again.",
+    next:"Use the same retained cohort to calculate the historical reopening timeline.",
+  },
+  "05 · HISTORICAL TIMELINE":{
+    data:"Recorded closure and reopening dates for the retained comparison group.",
+    analysis:"Calculate elapsed days, the median, the distribution, and the percentage without a recorded reopening at each eligible threshold.",
+    learning:"How long did comparable cases historically take to receive a recorded reopening?",
+    effect:"The observed range can inform cash-flow, staffing, inventory, supplier, and communications planning. It is not a predicted reopening date.",
+    next:"Return to your restaurant and check its newest official NYC record.",
+  },
+  "06 · LATEST OFFICIAL RECORD":{
+    data:"The newest available NYC Open Data rows for the selected restaurant’s CAMIS identifier.",
+    analysis:"Order the records by date and display the latest action, inspection, score, grade, and violation codes.",
+    learning:"What does the public dataset currently show for my restaurant, and what has changed since the closure record?",
+    effect:"The newest official evidence can help you identify what to verify next with DOHMH while retaining the comparison findings and historical timeline as context.",
+    next:"This completes the chain. Restart the analysis to select another restaurant or refresh the available official record.",
+  },
+};
+function HelpBrief({content,dark=false}:{content:HelpBriefContent;dark?:boolean}){const rows=[["Data",content.data],["Analysis",content.analysis],["You learn",content.learning],["Business effect",content.effect],["Next",content.next]];return <aside className={`help-brief${dark?" help-brief-dark":""}`} aria-label="How this helps you"><h3>How this helps you</h3><dl>{rows.map(([label,copy])=><div key={label}><dt>{label}</dt><dd>{copy}</dd></div>)}</dl></aside>}
+function Heading({kicker,title,name}:{kicker:string;title:string;name?:string}){return <div className="card-heading"><div><p className="wizard-kicker">{kicker}</p><h2>{title}</h2><HelpBrief content={helpBriefs[kicker]}/></div><span>{name}</span></div>}
 function Fact({label,value}:{label:string;value:string|number|null}){return <article><span>{label}</span><strong>{value??"—"}</strong></article>}
 function pct(n:number,d:number){return d?`${(n/d*100).toFixed(0)}%`:"—"}
-function ClosureRecord({episode}:{episode:ClosureEpisode}){return <div className="closure-panel"><p className="wizard-kicker">01 · OFFICIAL CLOSURE RECORD</p><h2>{episode.name}</h2><p>{episode.address} · {episode.borough} {episode.zipcode}</p><div className="closure-facts"><Fact label="Action" value={episode.closure.action}/><Fact label="Date" value={episode.closure.date}/><Fact label="Score" value={episode.closure.score}/><Fact label="Critical flags" value={episode.closure.codes.filter(c=>c.critical).length}/><Fact label="Inspection" value={episode.closure.inspectionType}/><Fact label="Latest status" value={episode.reopening?"Reopened by DOHMH":"No reopening matched"}/></div><div className="compact-codes">{episode.closure.codes.slice(0,6).map(code=><span key={code.code}><code>{code.code}</code>{code.description}{code.critical&&<b>Critical</b>}</span>)}</div></div>}
+function ClosureRecord({episode}:{episode:ClosureEpisode}){return <div className="closure-panel"><p className="wizard-kicker">01 · OFFICIAL CLOSURE RECORD</p><h2>{episode.name}</h2><p>{episode.address} · {episode.borough} {episode.zipcode}</p><HelpBrief content={helpBriefs["01 · OFFICIAL CLOSURE RECORD"]} dark/><div className="closure-facts"><Fact label="Action" value={episode.closure.action}/><Fact label="Date" value={episode.closure.date}/><Fact label="Score" value={episode.closure.score}/><Fact label="Critical flags" value={episode.closure.codes.filter(c=>c.critical).length}/><Fact label="Inspection" value={episode.closure.inspectionType}/><Fact label="Latest status" value={episode.reopening?"Reopened by DOHMH":"No reopening matched"}/></div><div className="compact-codes">{episode.closure.codes.slice(0,6).map(code=><span key={code.code}><code>{code.code}</code>{code.description}{code.critical&&<b>Critical</b>}</span>)}</div></div>}
 function CohortMap({paths,episodes,selected,onBorough}:{paths:BoroughMapPath[];episodes:ClosureEpisode[];selected:ClosureEpisode|null;onBorough:(borough:string)=>void}){
   const count=(name:string)=>episodes.filter(e=>e.borough===name).length;
   return <div className="cohort-map"><svg viewBox="0 0 720 430" aria-label="NYC comparable closure map">
