@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const links = [
   ["My record", "top"],
@@ -11,6 +11,18 @@ const links = [
 
 export function SiteNav() {
   const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+    const openAtTop = () => {
+      if (window.location.hash) history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+      requestAnimationFrame(() => window.scrollTo({ top: 0, left: 0, behavior: "instant" }));
+    };
+    openAtTop();
+    window.addEventListener("pageshow", openAtTop);
+    return () => window.removeEventListener("pageshow", openAtTop);
+  }, []);
 
   const go = (id: string) => (event: React.MouseEvent<HTMLAnchorElement>) => {
     const target = document.getElementById(id);
