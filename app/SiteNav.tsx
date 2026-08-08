@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 const links = [
-  ["My record", "find"],
+  ["My record", "top"],
   ["Compare", "compare"],
   ["Repeat closures", "repeat"],
   ["Timeline", "timeline"],

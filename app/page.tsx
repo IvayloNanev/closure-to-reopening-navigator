@@ -14,15 +14,12 @@ export default async function Home() {
   const data = analysis.ok ? analysis : null;
   return <main>
     <SiteNav />
-    <header className="new-hero" id="top">
+    <header className="new-hero search-hero" id="top">
       <div className="hero-mark" aria-hidden="true">6</div>
-      <div className="hero-content"><p className="live-label"><i/> NYC restaurant closure records</p><p className="hero-overline">When the doors close, every day matters.</p><h1>See what the data<br/><em>can tell you.</em></h1><p>Six Days helps a closed restaurant owner understand the official record, compare similar cases, learn from repeat closures, estimate a historical timeline, and follow what changes next.</p><a href="#find" className="start-button">Find my restaurant <span>↓</span></a></div>
-      <div className="hero-stat"><strong>{data?.medianDays ?? 6}</strong><span>median recorded days<br/>to reopening</span><small>Historical context—not a prediction</small></div>
+      <div className="hero-content"><p className="live-label"><i/> STEP 01 · LIVE NYC RESTAURANT CLOSURE RECORDS</p><p className="hero-overline">Start with your official record.</p><h1>Why was my restaurant<br/><em>closed?</em></h1><p>Find your restaurant to see the closure date, violations, recorded reopening status, and what NYC’s public data says happened next.</p>{data ? <RestaurantFinder restaurants={data.restaurantRecords}/> : <Unavailable/>}<a href="#compare" className="journey-link">Then compare my case with other restaurants <span>↓</span></a></div>
     </header>
 
     <BookChapters>
-      <section className="book-chapter owner-step" id="find"><Step n="01" title="Find my restaurant" question="Why was my restaurant closed?"/><p className="step-intro">Begin with the official public record. Search recent NYC closure events to see what was recorded—not an interpretation of what happened.</p>{data ? <RestaurantFinder restaurants={data.restaurantRecords}/> : <Unavailable/>}</section>
-
       <section className="book-chapter owner-step context-step" id="compare"><Step n="02" title="Explore the context" question="What happened to similarly closed restaurants?"/><p className="step-intro">Move from your case to its context. Compare closure records by borough, violation, and year, then see the same pattern across NYC.</p>{data ? <ReopeningBenchmarkExplorer records={data.benchmarkRecords} boroughMap={boroughMap}/> : <Unavailable/>}</section>
 
       <section className="book-chapter owner-step dark-step" id="repeat"><Step n="03" title="Learn from repeat closures" question="Which recorded conditions came back?"/><p className="step-intro">For restaurants with a later recorded closure, we compare the violation codes at the first and later closure. Repeated codes become an evidence-based attention list—not repair instructions.</p>
