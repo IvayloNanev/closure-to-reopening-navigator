@@ -44,6 +44,22 @@ type Analysis = {
     reopeningDays: number | null;
     codes: string[];
   }>;
+  restaurantRecords: Array<{
+    camis: string;
+    name: string;
+    borough: string;
+    closureDate: string;
+    reopeningDate: string | null;
+    reopeningDays: number | null;
+    codes: Array<{ code: string; description: string }>;
+    laterClosureCount: number;
+  }>;
+  repeatClosurePatterns: Array<{
+    code: string;
+    description: string;
+    repeatedCount: number;
+    repeatRate: number;
+  }>;
 } | { ok: false; message: string };
 
 const ENDPOINT = "https://data.cityofnewyork.us/resource/43nn-pn8j.json";
@@ -219,6 +235,8 @@ export async function getClosureAnalysis(): Promise<Analysis> {
       days: number;
       codes: string[];
     }> = [];
+    const restaurantRecords: Extract<Analysis, { ok: true }>["restaurantRecords"] = [];
+    const repeatCodeCounts = new Map<string, { description: string; repeated: number; eligible: number }>();
     for (const events of eventsByRestaurant.values()) {
       events.sort((a, b) => a.date.getTime() - b.date.getTime());
       events.forEach((event, index) => {
@@ -247,6 +265,26 @@ export async function getClosureAnalysis(): Promise<Analysis> {
           reopeningDays: recordedDays,
           codes: [...event.codes.keys()].sort(),
         });
+        const laterClosures = events.slice(index + 1).filter((candidate) => isClosed(candidate.action));
+        restaurantRecords.push({
+          camis: event.camis,
+          name: event.dba,
+          borough: event.borough,
+          closureDate: event.date.toISOString().slice(0, 10),
+          reopeningDate: reopening ? reopening.date.toISOString().slice(0, 10) : null,
+          reopeningDays: recordedDays,
+          codes: [...event.codes.entries()].map(([code, description]) => ({ code, description: shorten(description, code) })).sort((a, b) => a.code.localeCompare(b.code)),
+          laterClosureCount: laterClosures.length,
+        });
+        if (laterClosures.length) {
+          const laterCodes = new Set(laterClosures.flatMap((closure) => [...closure.codes.keys()]));
+          for (const [code, description] of event.codes) {
+            const item = repeatCodeCounts.get(code) || { description: shorten(description, code), repeated: 0, eligible: 0 };
+            item.eligible += 1;
+            if (laterCodes.has(code)) item.repeated += 1;
+            repeatCodeCounts.set(code, item);
+          }
+        }
       });
     }
 
@@ -295,6 +333,12 @@ export async function getClosureAnalysis(): Promise<Analysis> {
       apiUrl,
       sampleJourneys: matchedJourneys.sort((a, b) => b.closureDate.localeCompare(a.closureDate)).slice(0, 8),
       benchmarkRecords,
+      restaurantRecords: restaurantRecords.sort((a, b) => b.closureDate.localeCompare(a.closureDate)),
+      repeatClosurePatterns: [...repeatCodeCounts.entries()]
+        .filter(([, value]) => value.eligible >= 5)
+        .map(([code, value]) => ({ code, description: value.description, repeatedCount: value.repeated, repeatRate: value.repeated / value.eligible * 100 }))
+        .sort((a, b) => b.repeatedCount - a.repeatedCount)
+        .slice(0, 6),
     };
   } catch (error) {
     return {

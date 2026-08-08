@@ -12,12 +12,12 @@ const siteUrl = productionHost
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: "Six Days — Restaurant Reopening Service",
-  description: "Affordable online support for NYC restaurants preparing to reopen after a DOHMH closure.",
+  title: "Six Days — Understand your NYC restaurant closure",
+  description: "Live public records and historical comparisons for NYC restaurant owners navigating closure and reopening.",
   icons: { icon: "/favicon.svg", shortcut: "/favicon.svg" },
   openGraph: {
-    title: "Six Days — Restaurant Reopening Service",
-    description: "Affordable online support for NYC restaurants preparing to reopen after a DOHMH closure.",
+    title: "Six Days — Understand your NYC restaurant closure",
+    description: "See the official record, compare similar closures, learn from repeat closures, and follow what changes next.",
     images: [{ url: "/og.png", width: 1731, height: 909, alt: "Six Days — NYC restaurant closure-to-reopening data story" }],
   },
   twitter: { card: "summary_large_image", images: ["/og.png"] },

@@ -3,10 +3,10 @@
 import { useState } from "react";
 
 const links = [
-  ["The problem", "top"],
-  ["The data", "evidence"],
-  ["Our solution", "how-it-works"],
-  ["Pricing", "pricing"],
+  ["My record", "find"],
+  ["Compare", "compare"],
+  ["Repeat closures", "repeat"],
+  ["Timeline", "timeline"],
 ] as const;
 
 export function SiteNav() {
@@ -30,7 +30,7 @@ export function SiteNav() {
       </button>
       <div className={`nav-links ${open ? "open" : ""}`} id="site-menu">
         {links.map(([label, id]) => <a key={id} href={`#${id}`} onClick={go(id)}>{label}</a>)}
-        <a className="nav-cta" href="#start" onClick={go("start")}>Start reopening</a>
+        <a className="nav-cta" href="#monitor" onClick={go("monitor")}>Follow my record</a>
       </div>
     </nav>
   );
