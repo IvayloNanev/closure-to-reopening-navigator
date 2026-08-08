@@ -7,6 +7,9 @@ type InspectionRow = {
   action: string;
   violation_code?: string;
   violation_description?: string;
+  critical_flag?: string;
+  score?: string;
+  zipcode?: string;
 };
 
 type Event = {
@@ -15,7 +18,11 @@ type Event = {
   borough: string;
   date: Date;
   action: string;
+  inspectionType: string;
+  score: number | null;
+  zipcode: string;
   codes: Map<string, string>;
+  criticalCodes: Set<string>;
 };
 
 type Analysis = {
@@ -40,18 +47,30 @@ type Analysis = {
   }>;
   benchmarkRecords: Array<{
     borough: string;
+    zipcode: string;
     closureDate: string;
     reopeningDays: number | null;
     codes: string[];
+    criticalCount: number;
+    inspectionType: string;
+    reopeningCodes: string[];
+    laterClosureCodes: string[];
   }>;
   restaurantRecords: Array<{
     camis: string;
     name: string;
     borough: string;
+    zipcode: string;
     closureDate: string;
+    action: string;
+    score: number | null;
+    criticalCount: number;
+    inspectionType: string;
     reopeningDate: string | null;
     reopeningDays: number | null;
     codes: Array<{ code: string; description: string }>;
+    reopeningCodes: Array<{ code: string; description: string }>;
+    laterClosureCodes: string[];
     laterClosureCount: number;
   }>;
   repeatClosurePatterns: Array<{
@@ -178,7 +197,7 @@ export async function getClosureAnalysis(): Promise<Analysis> {
   const start = new Date(Date.UTC(now.getUTCFullYear() - 4, 0, 1));
   const startDate = start.toISOString().slice(0, 10);
   const params = new URLSearchParams({
-    "$select": "camis,dba,boro,inspection_date,inspection_type,action,violation_code,violation_description",
+    "$select": "camis,dba,boro,zipcode,inspection_date,inspection_type,action,violation_code,violation_description,critical_flag,score",
     "$where": `inspection_date >= '${startDate}T00:00:00.000' AND (action like '${CLOSED}%' OR action like '${REOPENED}%')`,
     "$order": "camis,inspection_date",
     "$limit": "50000",
@@ -204,11 +223,16 @@ export async function getClosureAnalysis(): Promise<Analysis> {
           borough: row.boro && row.boro !== "0" ? row.boro : "Borough unavailable",
           date: new Date(row.inspection_date),
           action: row.action,
+          inspectionType: row.inspection_type || "Inspection type unavailable",
+          score: row.score ? Number(row.score) : null,
+          zipcode: row.zipcode || "ZIP unavailable",
           codes: new Map(),
+          criticalCodes: new Set(),
         });
       }
       if (row.violation_code) {
         eventMap.get(eventKey)!.codes.set(row.violation_code, row.violation_description || "");
+        if (row.critical_flag === "Critical") eventMap.get(eventKey)!.criticalCodes.add(row.violation_code);
       }
     }
 
@@ -223,9 +247,14 @@ export async function getClosureAnalysis(): Promise<Analysis> {
     const reopeningDays: number[] = [];
     const benchmarkRecords: Array<{
       borough: string;
+      zipcode: string;
       closureDate: string;
       reopeningDays: number | null;
       codes: string[];
+      criticalCount: number;
+      inspectionType: string;
+      reopeningCodes: string[];
+      laterClosureCodes: string[];
     }> = [];
     const matchedJourneys: Array<{
       camis: string;
@@ -259,21 +288,35 @@ export async function getClosureAnalysis(): Promise<Analysis> {
             });
           }
         }
+        const reopeningIndex = reopening ? events.indexOf(reopening) : -1;
+        const laterClosures = reopeningIndex >= 0 ? events.slice(reopeningIndex + 1).filter((candidate) => isClosed(candidate.action)) : [];
+        const laterClosureCodes = [...new Set(laterClosures.flatMap((closure) => [...closure.codes.keys()]))].sort();
         benchmarkRecords.push({
           borough: event.borough,
+          zipcode: event.zipcode,
           closureDate: event.date.toISOString().slice(0, 10),
           reopeningDays: recordedDays,
           codes: [...event.codes.keys()].sort(),
+          criticalCount: event.criticalCodes.size,
+          inspectionType: event.inspectionType,
+          reopeningCodes: reopening ? [...reopening.codes.keys()].sort() : [],
+          laterClosureCodes,
         });
-        const laterClosures = events.slice(index + 1).filter((candidate) => isClosed(candidate.action));
         restaurantRecords.push({
           camis: event.camis,
           name: event.dba,
           borough: event.borough,
+          zipcode: event.zipcode,
           closureDate: event.date.toISOString().slice(0, 10),
+          action: event.action,
+          score: event.score,
+          criticalCount: event.criticalCodes.size,
+          inspectionType: event.inspectionType,
           reopeningDate: reopening ? reopening.date.toISOString().slice(0, 10) : null,
           reopeningDays: recordedDays,
           codes: [...event.codes.entries()].map(([code, description]) => ({ code, description: shorten(description, code) })).sort((a, b) => a.code.localeCompare(b.code)),
+          reopeningCodes: reopening ? [...reopening.codes.entries()].map(([code, description]) => ({ code, description: shorten(description, code) })).sort((a, b) => a.code.localeCompare(b.code)) : [],
+          laterClosureCodes,
           laterClosureCount: laterClosures.length,
         });
         if (laterClosures.length) {

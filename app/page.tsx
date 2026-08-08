@@ -8,5 +8,5 @@ export const metadata:Metadata={title:"Six Days — Restaurant Closure Navigator
 export default async function Home(){
   const analysis=await getClosureAnalysis();
   if(!analysis.ok)return <main className="wizard-error"><h1>Six Days</h1><p>The NYC Open Data connection is temporarily unavailable. Please try again shortly.</p></main>;
-  return <OwnerWizard restaurants={analysis.restaurantRecords} benchmarks={analysis.benchmarkRecords} repeats={analysis.repeatClosurePatterns}/>;
+  return <OwnerWizard restaurants={analysis.restaurantRecords} benchmarks={analysis.benchmarkRecords} repeats={analysis.repeatClosurePatterns} fetchedAt={analysis.fetchedAt}/>;
 }
