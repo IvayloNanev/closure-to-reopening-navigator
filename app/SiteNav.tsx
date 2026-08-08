@@ -1,28 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 const links = [
-  ["My record", "top"],
-  ["Compare", "compare"],
-  ["Repeat closures", "repeat"],
+  ["My record", "find"],
+  ["Compare & outcomes", "compare"],
   ["Timeline", "timeline"],
 ] as const;
 
 export function SiteNav() {
   const [open, setOpen] = useState(false);
-
-  useEffect(() => {
-    if ("scrollRestoration" in history) history.scrollRestoration = "manual";
-    const openAtTop = () => {
-      if (window.location.hash) history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
-      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
-      requestAnimationFrame(() => window.scrollTo({ top: 0, left: 0, behavior: "instant" }));
-    };
-    openAtTop();
-    window.addEventListener("pageshow", openAtTop);
-    return () => window.removeEventListener("pageshow", openAtTop);
-  }, []);
 
   const go = (id: string) => (event: React.MouseEvent<HTMLAnchorElement>) => {
     const target = document.getElementById(id);
@@ -42,7 +29,7 @@ export function SiteNav() {
       </button>
       <div className={`nav-links ${open ? "open" : ""}`} id="site-menu">
         {links.map(([label, id]) => <a key={id} href={`#${id}`} onClick={go(id)}>{label}</a>)}
-        <a className="nav-cta" href="#monitor" onClick={go("monitor")}>Follow my record</a>
+        <a className="nav-cta" href="#monitor" onClick={go("monitor")}>Check my latest record</a>
       </div>
     </nav>
   );

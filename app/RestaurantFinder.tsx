@@ -11,6 +11,7 @@ type Restaurant = {
 export function RestaurantFinder({ restaurants }: { restaurants: Restaurant[] }) {
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<Restaurant | null>(null);
+  const sample = useMemo(() => restaurants.find((item) => item.reopeningDate && item.codes.length >= 3) ?? restaurants[0], [restaurants]);
   const matches = useMemo(() => {
     const needle = query.trim().toLowerCase();
     if (needle.length < 2) return [];
@@ -20,6 +21,7 @@ export function RestaurantFinder({ restaurants }: { restaurants: Restaurant[] })
   return <div className="finder">
     <label htmlFor="restaurant-search">Restaurant name or CAMIS number</label>
     <div className="search-row"><input id="restaurant-search" value={query} onChange={(event) => { setQuery(event.target.value); setSelected(null); }} placeholder="Start typing a restaurant name…" autoComplete="off"/><span>LIVE NYC DATA</span></div>
+    {sample && !selected && <button className="load-sample" onClick={() => { setSelected(sample); setQuery(sample.name); }}><span>Not sure where to start?</span><strong>Load sample: {sample.name}</strong><b>→</b></button>}
     {matches.length > 0 && !selected && <ul className="search-results">{matches.map((item) => <li key={`${item.camis}-${item.closureDate}`}><button onClick={() => { setSelected(item); setQuery(item.name); }}><strong>{item.name}</strong><span>{item.borough} · closed {item.closureDate} · CAMIS {item.camis}</span></button></li>)}</ul>}
     {query.trim().length >= 2 && matches.length === 0 && !selected && <p className="no-match">No recent closure record matches that search. Try the official restaurant name or CAMIS number.</p>}
     {selected && <div className="record-card">
