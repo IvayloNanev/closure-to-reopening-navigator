@@ -2,7 +2,7 @@
 
 import { Children, cloneElement, isValidElement, useCallback, useEffect, useMemo, useRef, useState, type ReactElement, type ReactNode } from "react";
 
-const labels=["Start","Closure record","Find peer records","Plan timing","Review priorities","Manager summary"];
+const labels=["Start","Closure record","Choose violation","Plan timing","Review evidence","Manager summary"];
 
 export function BookChapters({children,unlockedThrough=1}:{children:ReactNode;unlockedThrough?:number}){
   const pages=useMemo(()=>Children.toArray(children).filter(isValidElement) as ReactElement<{id?:string;className?:string}>[],[children]);
