@@ -32,7 +32,7 @@ export function groupInspectionRows(rows:RawInspectionRow[]):InspectionEvent[]{
   return [...grouped.values()].map(event=>({...event,codes:event.codes.sort((a,b)=>a.code.localeCompare(b.code))}));
 }
 
-const isClosed=(event:InspectionEvent)=>event.action.startsWith("Establishment Closed by DOHMH");
+const isClosed=(event:InspectionEvent)=>event.action.startsWith("Establishment Closed by DOHMH")||event.action.startsWith("Establishment re-closed by DOHMH");
 const isReopened=(event:InspectionEvent)=>event.action.startsWith("Establishment re-opened by DOHMH");
 const daysBetween=(a:string,b:string)=>Math.round((new Date(`${b}T00:00:00Z`).getTime()-new Date(`${a}T00:00:00Z`).getTime())/86400000);
 

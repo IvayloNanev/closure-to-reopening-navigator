@@ -3,13 +3,14 @@ import assert from "node:assert/strict";
 import {buildClosureEpisodes,eventId,groupInspectionRows,matchCohort,recurrenceAnalysis,snapshotChanges,timelineAnalysis,transitionAnalysis} from "../lib/closure-analysis.ts";
 
 const row=(camis,date,action,code,extra={})=>({camis,dba:`Restaurant ${camis}`,boro:"Manhattan",building:"10",street:"Main St",zipcode:"10001",inspection_date:`${date}T00:00:00.000`,inspection_type:"Cycle Inspection / Initial Inspection",action,violation_code:code,violation_description:`Violation ${code}`,critical_flag:code==="A"?"Critical":"Not Critical",score:"30",latitude:"40.75",longitude:"-73.99",...extra});
-const closed="Establishment Closed by DOHMH";const reopened="Establishment re-opened by DOHMH";
+const closed="Establishment Closed by DOHMH";const reclosed="Establishment re-closed by DOHMH";const reopened="Establishment re-opened by DOHMH";
 
 test("raw violation rows combine into one event",()=>{const events=groupInspectionRows([row("1","2025-01-01",closed,"A"),row("1","2025-01-01",closed,"B")]);assert.equal(events.length,1);assert.deepEqual(events[0].codes.map(c=>c.code),["A","B"])});
 test("event and episode IDs are deterministic",()=>{const r=row("1","2025-01-01",closed,"A");assert.equal(eventId(r),eventId({...r}));const a=buildClosureEpisodes(groupInspectionRows([r]))[0];const b=buildClosureEpisodes(groupInspectionRows([{...r}]))[0];assert.equal(a.id,b.id)});
 test("two closures before one reopening create one episode",()=>{const events=groupInspectionRows([row("1","2025-01-01",closed,"A"),row("1","2025-01-03",closed,"B"),row("1","2025-01-06",reopened,"C")]);const episodes=buildClosureEpisodes(events);assert.equal(episodes.length,1);assert.equal(episodes[0].reopening?.date,"2025-01-06")});
 test("a reopening is never reused",()=>{const events=groupInspectionRows([row("1","2025-01-01",closed,"A"),row("1","2025-01-06",reopened,"C"),row("1","2025-02-01",closed,"A")]);const episodes=buildClosureEpisodes(events);assert.equal(episodes.length,2);assert.equal(episodes.filter(e=>e.reopening).length,1)});
 test("unmatched closure remains censored",()=>{const episode=buildClosureEpisodes(groupInspectionRows([row("1","2025-01-01",closed,"A")]))[0];assert.equal(episode.reopening,null);assert.equal(episode.reopeningDays,null)});
+test("official re-closed action starts a new closure episode",()=>{const episodes=buildClosureEpisodes(groupInspectionRows([row("1","2025-01-01",closed,"A"),row("1","2025-01-06",reopened,"B"),row("1","2025-03-01",reclosed,"A")]));assert.equal(episodes.length,2);const first=episodes.find(e=>e.reopening);assert.equal(first?.laterClosure?.action,reclosed);assert.equal(first?.laterClosureDays,54)});
 
 function fixtures(){return buildClosureEpisodes(groupInspectionRows([
   row("1","2025-01-01",closed,"A"),row("1","2025-01-01",closed,"B"),row("1","2025-01-06",reopened,"B"),row("1","2026-02-10",closed,"A"),
