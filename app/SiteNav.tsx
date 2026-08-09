@@ -17,8 +17,7 @@ export function SiteNav() {
     event.preventDefault();
     setOpen(false);
     if (target instanceof HTMLDetailsElement) target.open = true;
-    history.pushState(null, "", `#${id}`);
-    requestAnimationFrame(() => target.scrollIntoView({ behavior: "smooth", block: "start" }));
+    window.dispatchEvent(new CustomEvent("six-days-go-step", { detail: id }));
   };
 
   return (

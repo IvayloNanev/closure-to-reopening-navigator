@@ -72,6 +72,7 @@ export type BoroughMapPath = {
   path: string;
   labelX: number;
   labelY: number;
+  projection: { minLon: number; maxLat: number; scale: number; offsetX: number; offsetY: number };
 };
 
 type Position = [number, number];
@@ -138,6 +139,7 @@ export async function getBoroughMap(): Promise<BoroughMapPath[]> {
         path,
         labelX: (featureMinX + featureMaxX) / 2 + adjustX,
         labelY: (featureMinY + featureMaxY) / 2 + adjustY,
+        projection: { minLon, maxLat, scale, offsetX, offsetY },
       };
     });
   } catch {
