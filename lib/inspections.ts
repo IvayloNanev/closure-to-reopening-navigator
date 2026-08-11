@@ -81,7 +81,7 @@ type BoroughFeature = {
   geometry: { type: "Polygon" | "MultiPolygon"; coordinates: Position[][] | Position[][][] };
 };
 
-export async function getBoroughMap(): Promise<BoroughMapPath[]> {
+async function loadBoroughMap(): Promise<BoroughMapPath[]> {
   try {
     const response = await fetch(BOROUGH_BOUNDARIES, { next: { revalidate: 604800 } });
     if (!response.ok) return [];
@@ -145,6 +145,15 @@ export async function getBoroughMap(): Promise<BoroughMapPath[]> {
   } catch {
     return [];
   }
+}
+
+let cachedBoroughMap:BoroughMapPath[]|null=null;
+let pendingBoroughMap:Promise<BoroughMapPath[]>|null=null;
+
+export async function getBoroughMap():Promise<BoroughMapPath[]>{
+  if(cachedBoroughMap)return cachedBoroughMap;
+  if(!pendingBoroughMap)pendingBoroughMap=loadBoroughMap().then(map=>{cachedBoroughMap=map;return map}).finally(()=>{pendingBoroughMap=null});
+  return pendingBoroughMap;
 }
 
 function isClosed(action: string) {
