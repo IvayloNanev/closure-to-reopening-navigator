@@ -44,7 +44,10 @@ export function buildClosureEpisodes(events:InspectionEvent[]):ClosureEpisode[]{
     restaurantEvents.sort((a,b)=>a.date.localeCompare(b.date)||a.id.localeCompare(b.id));
     let active:InspectionEvent|null=null;
     for(const event of restaurantEvents){
-      if(isClosed(event)){if(!active)active=event;continue;}
+      // A re-closure is a new enforcement action. While an episode is active it
+      // replaces the active start so the recorded interval begins at the most
+      // recent closure/re-closure action before reopening.
+      if(isClosed(event)){if(!active||event.action.startsWith("Establishment re-closed by DOHMH"))active=event;continue;}
       if(active&&isReopened(event)){
         episodes.push({id:`episode|${active.id}`,camis:active.camis,name:active.name,borough:active.borough,address:active.address,zipcode:active.zipcode,latitude:active.latitude,longitude:active.longitude,closure:active,reopening:event,laterClosure:null,reopeningDays:daysBetween(active.date,event.date),laterClosureDays:null});active=null;
       }
@@ -84,7 +87,8 @@ export function recurrenceAnalysis(episodes:ClosureEpisode[],referenceDate:strin
 export function timelineAnalysis(episodes:ClosureEpisode[],referenceDate:string){
   const matched=episodes.filter(e=>e.reopeningDays!==null);const values=matched.map(e=>e.reopeningDays!).sort((a,b)=>a-b);const median=values.length?(values.length%2?values[(values.length-1)/2]:(values[values.length/2-1]+values[values.length/2])/2):null;
   const thresholds=[7,14,30].map(days=>{const eligible=episodes.filter(e=>daysBetween(e.closure.date,referenceDate)>=days);const without=eligible.filter(e=>e.reopeningDays===null||e.reopeningDays>days);return {days,eligible:eligible.length,without:without.length,rate:eligible.length?without.length/eligible.length*100:0}});
-  return {total:episodes.length,matched:matched.length,median,thresholds,values};
+  const unmatched=episodes.filter(e=>e.reopeningDays===null);const unmatchedObservable15=unmatched.filter(e=>daysBetween(e.closure.date,referenceDate)>=15).length;
+  return {total:episodes.length,matched:matched.length,median,thresholds,values,unmatched:unmatched.length,unmatchedObservable15,unmatchedTooRecent15:unmatched.length-unmatchedObservable15};
 }
 
 export function snapshotChanges(previous:InspectionEvent[]|null,current:InspectionEvent[]){if(!previous)return null;const before=new Map(previous.map(e=>[e.id,JSON.stringify(e)]));return current.filter(e=>before.get(e.id)!==JSON.stringify(e));}

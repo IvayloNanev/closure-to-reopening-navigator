@@ -24,7 +24,7 @@ export default async function Home() {
   const boroughMap = mapResult.status === "fulfilled" ? mapResult.value : [];
   return <main>
     <SiteNav />
-    <ConnectedJourney episodes={navigator.episodes} events={navigator.events} boroughMap={boroughMap} fetchedAt={navigator.fetchedAt}/>
+    <ConnectedJourney episodes={navigator.episodes} events={navigator.events} boroughMap={boroughMap} fetchedAt={navigator.fetchedAt} dateRange={navigator.dateRange}/>
     <footer><a className="brand" href="#top">Six Days</a><p>NYC closure context and exact-match timing benchmarks</p><span>{navigator.dateRange} · retrieved {navigator.fetchedAt}</span></footer>
   </main>;
 }
