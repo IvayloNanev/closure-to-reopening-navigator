@@ -577,6 +577,28 @@ footer { border-top-color: var(--sd-line); color: var(--sd-muted); }
   font-size: 15px !important;
 }
 .owner-step select { min-height: 48px; padding: 0 14px; }
+
+/* Global shape language: every bordered surface uses a soft corner. */
+:where(
+  .new-hero,.journey-rail,.owner-step,.journey-card,.record-card,
+  .search-row,.search-results,.no-search-match,.verification-card,
+  .comparison-path-card,.custom-comparison,.exact-benchmark,.peer-set-map,
+  .timeline-answer,.timeline-summary,.timeline-evidence,.delay-checkpoints,
+  .violation-outcomes,.comparison-details,.manager-summary,.planning-scenarios,
+  .primary-planning-range,.planning-scenario-results,.planning-basis,
+  .comparison-map,.comparison-map-stage svg,.comparison-map-inspector,.comparison-map-list,
+  .match-method-details,.scenario-calculator,.manager-brief,.latest-record,
+  .comparison-boundary,.final-boundary,.never-closed-message,.inspection-snapshot,
+  .episode-evidence-strip,.checkpoint-trajectory,.transition-matrix,.planning-story-bar
+) { border-radius: var(--sd-radius) !important; }
+:where(button,input:not([type="checkbox"]):not([type="radio"]),select,textarea,fieldset,details,[role="alert"],[role="status"]) {
+  border-radius: var(--sd-control-radius) !important;
+}
+.comparison-map-list button {
+  margin: 5px 0;
+  border: 1px solid var(--sd-line) !important;
+  border-radius: 10px !important;
+}
 .live-data-loading,
 .live-data-warning,
 .journey-empty,
