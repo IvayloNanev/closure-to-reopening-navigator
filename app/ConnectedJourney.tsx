@@ -63,7 +63,6 @@ export function ConnectedJourney({episodes:initialEpisodes,events:initialEvents,
   useEffect(()=>{const requestReset=()=>{const hasFinancialInput=Object.values(financialPlan).some(value=>value>0);const hasManagerInput=Object.values(operatingPlan).some(Boolean);const hasProgress=Boolean(selected||comparisonMode||lockedIds.length);if((hasFinancialInput||hasManagerInput||hasProgress)&&!window.confirm("Start another journey? This will clear the selected restaurant, comparison, financial estimates, and manager decisions."))return;window.dispatchEvent(new Event("six-days-reset"));window.scrollTo({top:0,behavior:"auto"})};window.addEventListener("six-days-request-reset",requestReset);return()=>window.removeEventListener("six-days-request-reset",requestReset)},[financialPlan,operatingPlan,selected,comparisonMode,lockedIds.length]);
   useEffect(()=>{if(!sample)return;const load=()=>choose(sample);window.addEventListener("six-days-load-sample",load);return()=>window.removeEventListener("six-days-load-sample",load)},[sample,choose]);
   const unlockedThrough = !selected||fetchState!=="success" ? 1 : selectedNeverClosed ? 3 : cohort.length ? 4 : comparisonMode ? 3 : 2;
-  // @ts-expect-error Legacy comparison draft accepts the unselected null state; the active Step 3 path handles it explicitly.
   const selectedCodeSet=new Set(activeCodes);
   const ownTransitionRows=transitions.rows.filter(row=>selectedCodeSet.has(row.code));
   const ownRecurrence={...recurrence,codes:recurrence.codes.filter(row=>selectedCodeSet.has(row.code))};
