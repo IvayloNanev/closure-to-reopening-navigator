@@ -181,7 +181,7 @@ body {
   border-radius: 50% 0 0 50%;
   background: linear-gradient(90deg,transparent,rgba(255,255,255,.78) 62%,rgba(177,131,36,.28));
   pointer-events: none;
-  animation: physicalCurlHighlight 1.05s cubic-bezier(.22,.7,.12,1) both;
+  animation: physicalCurlHighlight 1.5s cubic-bezier(.24,.64,.16,1) both;
 }
 
 @keyframes physicalCurlHighlight {

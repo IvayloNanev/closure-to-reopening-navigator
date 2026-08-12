@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: "Six Days — Understand your NYC restaurant closure",
   description: "Live public records and historical comparisons for NYC restaurant owners navigating closure and reopening.",
-  icons: { icon: "/favicon.svg", shortcut: "/favicon.svg" },
+  icons: { icon: "/favicon.svg?v=2", shortcut: "/favicon.svg?v=2" },
   openGraph: {
     title: "Six Days — Understand your NYC restaurant closure",
     description: "See the official record, compare similar closures, learn from repeat closures, and follow what changes next.",
