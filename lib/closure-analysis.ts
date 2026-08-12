@@ -86,7 +86,7 @@ export function recurrenceAnalysis(episodes:ClosureEpisode[],referenceDate:strin
 
 export function timelineAnalysis(episodes:ClosureEpisode[],referenceDate:string){
   const matched=episodes.filter(e=>e.reopeningDays!==null);const values=matched.map(e=>e.reopeningDays!).sort((a,b)=>a-b);const median=values.length?(values.length%2?values[(values.length-1)/2]:(values[values.length/2-1]+values[values.length/2])/2):null;
-  const thresholds=[7,14,30].map(days=>{const eligible=episodes.filter(e=>daysBetween(e.closure.date,referenceDate)>=days);const without=eligible.filter(e=>e.reopeningDays===null||e.reopeningDays>days);return {days,eligible:eligible.length,without:without.length,rate:eligible.length?without.length/eligible.length*100:0}});
+  const thresholds=[7,14,21,28].map(days=>{const eligible=episodes.filter(e=>daysBetween(e.closure.date,referenceDate)>=days);const without=eligible.filter(e=>e.reopeningDays===null||e.reopeningDays>days);return {days,eligible:eligible.length,without:without.length,rate:eligible.length?without.length/eligible.length*100:0}});
   const unmatched=episodes.filter(e=>e.reopeningDays===null);const unmatchedObservable15=unmatched.filter(e=>daysBetween(e.closure.date,referenceDate)>=15).length;
   return {total:episodes.length,matched:matched.length,median,thresholds,values,unmatched:unmatched.length,unmatchedObservable15,unmatchedTooRecent15:unmatched.length-unmatchedObservable15};
 }

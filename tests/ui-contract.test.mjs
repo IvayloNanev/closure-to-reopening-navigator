@@ -14,6 +14,11 @@ test("page navigation restores history and moves focus",()=>{
   for(const token of ['pushState','popstate','data-page-heading','heading?.focus()'])assert.ok(chapters.includes(token),token);
 });
 
+test("no-closure journey ends after the verified inspection record",()=>{
+  assert.ok(chapters.includes('page.props.id==="top"||page.props.id==="find"'));
+  assert.ok(chapters.includes('const inspectionLabels=["Start","Inspection record"]'));
+});
+
 test("maps use an accessible HTML control list",()=>{
   assert.ok(journey.includes('ACCESSIBLE MAP CONTROLS'));
   assert.ok(journey.includes('aria-pressed={item.id===focusedId}'));
@@ -24,6 +29,10 @@ test("small samples and overlapping locations have explicit treatments",()=>{
   assert.ok(journey.includes('SmallSampleDotPlot'));
   assert.ok(journey.includes('LIMITED EVIDENCE'));
   assert.ok(journey.includes('numbered markers contain multiple closure records'));
+});
+
+test("Step 3 defines its median calculation in comparison scope",()=>{
+  assert.match(journey,/function ComparisonResultsPage[\s\S]*?const median=/);
 });
 
 test("print view and semantic status tokens exist",()=>{
