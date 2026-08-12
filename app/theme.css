@@ -1377,10 +1377,81 @@ footer { border-top-color: var(--sd-line); color: var(--sd-muted); }
   .trajectory-line { grid-template-columns: 1fr; }
   .trajectory-line article > p { min-height: 0; }
   .checkpoint-summary { grid-template-columns: 1fr; gap: 18px; }
-  .violation-trend { overflow-x: auto; }
-  .violation-trend > * { min-width: 560px; }
+  /* Keep all three evidence stages visible together on a phone. */
+  .violation-trend { margin: 4px 12px 16px; padding: 15px 10px; overflow: visible; }
+  .violation-trend > * { min-width: 0; }
+  .trend-axis,.trend-values { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 4px; }
+  .trend-axis span { padding: 0 2px; font-size: 8px; letter-spacing: .03em; overflow-wrap: anywhere; }
+  .trend-plot { height: 118px; }
+  .trend-values > div { min-width: 0; padding: 0 2px; }
+  .trend-values strong { font-size: 16px; overflow-wrap: anywhere; }
+  .trend-values span { font-size: 9px; line-height: 1.3; overflow-wrap: anywhere; }
   .scenario-outputs article + article,.manager-brief dl > div:nth-child(even) { border-left: 0; border-top: 1px solid var(--sd-line); }
   .manager-brief > header { align-items: flex-start; flex-direction: column; }
+}
+
+/* Mobile journey audit corrections. Keep the desktop information order intact. */
+@media (max-width: 560px) {
+  .nav-shell { min-height: 64px; height: 64px; }
+  .brand,.nav-reset { min-height: 44px; display: inline-flex; align-items: center; }
+  .nav-reset { padding: 0 13px; }
+
+  .journey-rail {
+    top: 64px;
+    width: calc(100% - 12px);
+    min-height: 60px;
+    padding: 6px;
+    display: grid;
+    grid-template-columns: repeat(5,minmax(0,1fr));
+    gap: 3px;
+    overflow: visible;
+  }
+  .rail-stop { width: 100%; gap: 0; justify-content: center; }
+  .rail-stop > i { display: none; }
+  .rail-stop button { width: 100%; min-width: 0; min-height: 46px; padding: 4px 2px; }
+  .rail-stop button span { width: 26px; height: 26px; }
+  .mobile-step-status { top: 124px; }
+
+  .live-record-state a {
+    min-height: 44px;
+    padding: 0 8px;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .comparison-results-page { gap: 20px; }
+  .comparison-results-page > section,
+  .comparison-results-page > figure { margin-top: 0; margin-bottom: 0; }
+  .comparison-map > header,.comparison-split > header,.results-section > header,
+  .violation-paths > header,.scenario-calculator > header { padding: 18px; }
+  .comparison-map h3,.comparison-split h3,.results-section h3,
+  .violation-paths h3,.scenario-calculator h3 { font-size: 22px; }
+
+  .comparison-map-layout { gap: 12px; padding: 12px; }
+  .comparison-map-stage svg { min-height: 210px; }
+  .comparison-map-inspector { padding: 12px 13px; }
+  .comparison-map-inspector strong { font-size: 17px; }
+  .comparison-map-list { padding: 13px; }
+  .comparison-map-list > div { max-height: 230px; }
+  .comparison-map-list button { min-height: 52px; padding: 9px 8px; }
+  .comparison-map figcaption { padding: 0 14px 15px; }
+
+  .results-section .timeline-bars { margin: 18px; }
+  .timing-facts article,.later-closure-grid article { padding: 15px 18px; }
+  .comparison-meaning,.path-meaning { margin: 0; padding: 15px 18px; }
+  .violation-path-list > article > header { padding: 16px 18px 10px; }
+  .violation-paths > footer { padding: 14px 18px; }
+
+  .scenario-calculator,.manager-action-plan,.manager-brief { margin: 20px 0; }
+  .scenario-inputs,.manager-action-plan > div { padding: 16px 18px; gap: 12px; }
+  .scenario-outputs article { padding: 16px 18px; }
+  .scenario-actions { padding: 12px 18px; }
+  .manager-action-plan > header,.manager-brief > header { padding: 18px; }
+  .manager-action-plan footer { padding: 12px 18px; }
+  .brief-planning { padding: 18px; }
+  .manager-brief dl > div { padding: 13px 18px; }
+  .brief-financials > header,.manager-brief > p { padding: 14px 18px; }
+  .brief-assumptions article,.brief-exposures article { padding: 13px 18px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
