@@ -32,6 +32,11 @@ test("maps use an accessible HTML control list",()=>{
   assert.ok(journey.includes('aria-hidden="true"'));
 });
 
+test("comparison markers retain a coordinate projection without boundary geometry",()=>{
+  assert.match(journey,/\(\(longitude\+74\.26\)\/\.56\)\*720/);
+  assert.doesNotMatch(journey,/projection\?\{x:[^}]+\}:\{x:0,y:0\}/);
+});
+
 test("small samples and overlapping locations have explicit treatments",()=>{
   assert.ok(journey.includes('SmallSampleDotPlot'));
   assert.ok(journey.includes('LIMITED EVIDENCE'));

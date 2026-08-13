@@ -202,7 +202,12 @@ function ComparisonPointMap({paths,episodes,selected}:{paths:BoroughMapPath[];ep
   const [focusedId,setFocusedId]=useState<string|null>(null);
   const focused=episodes.find(item=>item.id===focusedId)??null;
   const projection=paths[0]?.projection;
-  const point=(longitude:number,latitude:number)=>projection?{x:projection.offsetX+(longitude-projection.minLon)*projection.scale,y:projection.offsetY+(projection.maxLat-latitude)*projection.scale}:{x:0,y:0};
+  const point=(longitude:number,latitude:number)=>{
+    const location=projection
+      ? {x:projection.offsetX+(longitude-projection.minLon)*projection.scale,y:projection.offsetY+(projection.maxLat-latitude)*projection.scale}
+      : {x:((longitude+74.26)/.56)*720,y:((40.92-latitude)/.43)*430};
+    return {x:Math.max(8,Math.min(712,location.x)),y:Math.max(8,Math.min(422,location.y))};
+  };
   const plotted=episodes.filter(item=>item.latitude!==null&&item.longitude!==null);
   const clusters=[...plotted.reduce((map,item)=>{const key=`${item.latitude!.toFixed(4)}|${item.longitude!.toFixed(4)}`;const current=map.get(key)??[];current.push(item);map.set(key,current);return map},new Map<string,ClosureEpisode[]>()).entries()].map(([key,items])=>({key,items,location:point(items[0].longitude!,items[0].latitude!)}));
   const missing=episodes.length-plotted.length;
