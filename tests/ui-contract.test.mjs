@@ -49,6 +49,16 @@ test("landing page does not block on the full NYC comparison dataset",()=>{
   assert.ok(journey.includes('Historical comparisons are temporarily unavailable. Live restaurant search still works.'));
 });
 
+test("restaurant verification and historical comparisons disclose different freshness",()=>{
+  assert.ok(journey.includes('cache:"no-store"'));
+  assert.ok(journey.includes('DIRECT NYC REQUEST'));
+  assert.ok(journey.includes('CACHED COMPARISON SNAPSHOT'));
+  assert.ok(journey.includes('Historical comparison data is cached for up to 6 hours'));
+  assert.ok(journey.includes('browser caching disabled'));
+  assert.ok(theme.includes('.data-freshness.direct'));
+  assert.ok(theme.includes('.data-freshness.comparison'));
+});
+
 test("comparison evidence is integrated into the planning range",()=>{
   assert.ok(journey.includes('What supports this range:'));
   assert.ok(!journey.includes('WHY THESE RESTAURANTS WERE COMPARED'));
@@ -79,6 +89,12 @@ test("Step 2 option selection preserves the viewport",()=>{
   assert.ok(theme.includes('.comparison-path-card > .comparison-preview.visible { visibility: visible; }'));
 });
 
+test("Step 3 cannot open with an empty comparison group",()=>{
+  assert.ok(journey.includes('Boolean(draftCohort.length&&comparisonMode'));
+  assert.ok(journey.includes('No exact matching closures found. Choose Option 2'));
+  assert.ok(journey.includes('No closures match these settings yet. Broaden the codes, area, or match strength.'));
+});
+
 test("audited reset and planning states are explicit",()=>{
   assert.ok(journey.includes('six-days-request-reset'));
   assert.ok(journey.includes('window.confirm("Start another journey?'));
@@ -100,14 +116,20 @@ test("print view and semantic status tokens exist",()=>{
 });
 
 test("every journey page opens with an accessible book transition",()=>{
-  assert.ok(theme.includes('.journey-page:not([hidden]) > .book-chapter'));
+  assert.ok(theme.includes('.journey-page:not([hidden])'));
   assert.ok(theme.includes('animation: originalBookPageOpen'));
   assert.ok(theme.includes('@keyframes originalBookPageOpen'));
   assert.ok(theme.includes('@keyframes originalBookPageOpenRight'));
-  assert.ok(chapters.includes('currentPage.animate'));
-  assert.ok(theme.includes('view-transition-name: journey-page'));
-  assert.ok(theme.includes('@keyframes turnPageForward'));
-  assert.ok(theme.includes('@keyframes turnPageBackward'));
+  assert.ok(theme.includes('@keyframes originalBookEdge'));
+  assert.ok(theme.includes('width: 18%;'));
+  assert.ok(theme.includes('border-radius: 0 var(--sd-radius) var(--sd-radius) 0'));
+  assert.ok(chapters.includes('journey-page fold-from-right-edge'));
+  assert.ok(!chapters.includes('index%2?"turn-from-right":"turn-from-left"'));
+  assert.ok(chapters.includes('setPageTurn(value=>value+1)'));
+  assert.ok(chapters.includes('six-days-page-turn-complete'));
+  assert.ok(!chapters.includes('physical-page-sheet'));
+  assert.ok(!theme.includes('@keyframes physicalCurlHighlight'));
+  assert.ok(!theme.includes('@keyframes turnPageForward'));
   assert.match(theme,/prefers-reduced-motion:[\s\S]*\.journey-page:not\(\[hidden\]\)/);
 });
 
@@ -115,9 +137,17 @@ test("bar and line charts animate as evidence is revealed",()=>{
   assert.ok(journey.includes('function ChartViewportObserver'));
   assert.ok(journey.includes('IntersectionObserver'));
   assert.ok(journey.includes('is-chart-visible'));
+  assert.ok(chapters.includes('six-days-page-turn-complete'));
+  assert.ok(journey.includes('six-days-page-turn-complete'));
+  assert.ok(journey.includes('.journey-page:not([hidden])'));
   assert.ok(theme.includes('@keyframes chartBarGrow'));
   assert.ok(theme.includes('@keyframes trendLineDraw'));
   assert.ok(theme.includes('@keyframes trendPointReveal'));
   assert.ok(theme.includes('.planning-distribution-bars article i b'));
   assert.ok(theme.includes('.trend-segment.second'));
+  assert.ok(theme.includes('@keyframes weeklyBarGrow'));
+  assert.ok(theme.includes('@keyframes weeklyRowReveal'));
+  assert.ok(theme.includes('.checkpoint-trajectory.is-chart-visible .weekly-reopening-groups article > i > em'));
+  assert.ok(theme.includes('.episode-evidence-strip.is-chart-visible .episode-track i'));
+  assert.ok(journey.includes('six-days-journey-state'));
 });
