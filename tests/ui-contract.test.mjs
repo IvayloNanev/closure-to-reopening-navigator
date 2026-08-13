@@ -65,7 +65,8 @@ test("the sample journey has a bundled offline dataset",()=>{
   assert.ok(journey.includes('offlineSampleEpisodes'));
   assert.ok(journey.includes('selectedCamis=selected?.camis.startsWith("900000")?undefined'));
   assert.ok(journey.includes('setFetchState("success")'));
-  assert.ok(journey.includes('setComparisonData(bundledData)'));
+  assert.ok(journey.includes('setComparisonData(current=>({...current'));
+  assert.ok(journey.includes('episodes:offlineSampleEpisodes,events:offlineSampleEvents'));
   assert.ok(journey.includes('navigator.serviceWorker.register("/six-days-sw.js")'));
 });
 
