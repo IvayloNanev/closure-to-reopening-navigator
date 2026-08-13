@@ -49,6 +49,14 @@ test("landing page does not block on the full NYC comparison dataset",()=>{
   assert.ok(journey.includes('Historical comparisons are temporarily unavailable. Live restaurant search still works.'));
 });
 
+test("the sample journey has a bundled offline dataset",()=>{
+  assert.ok(journey.includes('offlineSampleEpisodes'));
+  assert.ok(journey.includes('selectedCamis=selected?.camis.startsWith("900000")?undefined'));
+  assert.ok(journey.includes('setFetchState("success")'));
+  assert.ok(journey.includes('setComparisonData(bundledData)'));
+  assert.ok(journey.includes('navigator.serviceWorker.register("/six-days-sw.js")'));
+});
+
 test("restaurant verification and historical comparisons disclose different freshness",()=>{
   assert.ok(journey.includes('cache:"no-store"'));
   assert.ok(journey.includes('DIRECT NYC REQUEST'));
@@ -89,8 +97,11 @@ test("Step 2 option selection preserves the viewport",()=>{
   assert.ok(theme.includes('.comparison-path-card > .comparison-preview.visible { visibility: visible; }'));
 });
 
-test("Step 3 cannot open with an empty comparison group",()=>{
-  assert.ok(journey.includes('Boolean(draftCohort.length&&comparisonMode'));
+test("Step 3 explicitly reports an empty comparison group",()=>{
+  assert.ok(journey.includes('comparisonConfigured'));
+  assert.ok(journey.includes('No matching comparison records found'));
+  assert.ok(journey.includes('COMPARISON RESULT · 0 MATCHES'));
+  assert.ok(journey.includes('cannot calculate a historical reopening median'));
   assert.ok(journey.includes('No exact matching closures found. Choose Option 2'));
   assert.ok(journey.includes('No closures match these settings yet. Broaden the codes, area, or match strength.'));
 });
