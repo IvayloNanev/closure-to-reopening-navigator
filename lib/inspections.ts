@@ -83,7 +83,10 @@ type BoroughFeature = {
 
 async function loadBoroughMap(): Promise<BoroughMapPath[]> {
   try {
-    const response = await fetch(BOROUGH_BOUNDARIES, { next: { revalidate: 604800 } });
+    // The source GeoJSON is larger than Next.js' 2 MB Data Cache limit. Cache
+    // the compact projected paths in this module instead of asking Next to
+    // cache the multi-megabyte upstream response.
+    const response = await fetch(BOROUGH_BOUNDARIES, { cache: "no-store" });
     if (!response.ok) return [];
     const collection = await response.json() as { features?: BoroughFeature[] };
     const features = collection.features || [];

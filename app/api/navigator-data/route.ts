@@ -3,6 +3,7 @@ import { getBoroughMap } from "../../../lib/inspections";
 import { getNavigatorData } from "../../../lib/navigator-data";
 
 export const revalidate = 21600;
+export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {

@@ -5,6 +5,8 @@ import {readFile} from "node:fs/promises";
 const journey=await readFile(new URL("../app/ConnectedJourney.tsx",import.meta.url),"utf8");
 const chapters=await readFile(new URL("../app/BookChapters.tsx",import.meta.url),"utf8");
 const theme=await readFile(new URL("../app/theme.css",import.meta.url),"utf8");
+const inspections=await readFile(new URL("../lib/inspections.ts",import.meta.url),"utf8");
+const serviceWorker=await readFile(new URL("../public/six-days-sw.js",import.meta.url),"utf8");
 
 test("search exposes combobox state and keyboard controls",()=>{
   for(const token of ['role="combobox"','aria-expanded','aria-controls','aria-activedescendant','ArrowDown','ArrowUp','Escape'])assert.ok(journey.includes(token),token);
@@ -35,6 +37,11 @@ test("maps use an accessible HTML control list",()=>{
 test("comparison markers retain a coordinate projection without boundary geometry",()=>{
   assert.match(journey,/\(\(longitude\+74\.26\)\/\.56\)\*720/);
   assert.doesNotMatch(journey,/projection\?\{x:[^}]+\}:\{x:0,y:0\}/);
+});
+
+test("NYC map geometry bypasses the framework response-size cache",()=>{
+  assert.ok(inspections.includes('fetch(BOROUGH_BOUNDARIES, { cache: "no-store" })'));
+  assert.ok(serviceWorker.includes('six-days-offline-v2'));
 });
 
 test("small samples and overlapping locations have explicit treatments",()=>{
