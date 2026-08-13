@@ -1356,6 +1356,10 @@ footer { border-top-color: var(--sd-line); color: var(--sd-muted); }
   outline: none;
   box-shadow: 0 0 0 3px var(--sd-focus);
 }
+.context-step > [data-page-heading]:focus-visible {
+  border-radius: 0;
+  box-shadow: none;
+}
 
 @media (max-width: 850px) {
   .trajectory-line { grid-template-columns: 1fr 1fr; }
