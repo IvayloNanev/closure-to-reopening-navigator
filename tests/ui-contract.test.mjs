@@ -98,6 +98,9 @@ test("Step 3 identifies every exact record used in its analysis",()=>{
   assert.ok(journey.includes('EXACT MATCHES USED IN STEP 3'));
   assert.ok(journey.includes('Exact closure records used in the comparison'));
   assert.ok(journey.includes('These exact records—not every NYC closure—are the evidence used'));
+  for(const label of ['data-label="Restaurant"','data-label="Closure"','data-label="Recorded reopening"','data-label="Interval"','data-label="Exact codes"'])assert.ok(journey.includes(label),label);
+  assert.ok(theme.includes('content: attr(data-label)'));
+  assert.ok(!theme.includes('.exact-match-table-head,.exact-match-table article { min-width: 720px; }'));
 });
 
 test("restaurant verification and historical comparisons disclose different freshness",()=>{
@@ -108,6 +111,20 @@ test("restaurant verification and historical comparisons disclose different fres
   assert.ok(journey.includes('browser caching disabled'));
   assert.ok(theme.includes('.data-freshness.direct'));
   assert.ok(theme.includes('.data-freshness.comparison'));
+});
+
+test("small screens do not use decorative gold borders",()=>{
+  assert.ok(theme.includes('.journey-rail .rail-stop button.current { border-color: var(--sd-line) !important; }'));
+  assert.ok(theme.includes('.rail-stop button:focus-visible'));
+  assert.ok(theme.includes('outline: 2px solid #6e6e73'));
+  assert.ok(theme.includes('.data-freshness.comparison { border-left-color: var(--sd-line); border-left-width: 1px; }'));
+});
+
+test("the sample restaurant action can wrap on very small screens",()=>{
+  assert.ok(theme.includes('.hero-actions-row.sample-only .hero-sample > strong'));
+  assert.ok(theme.includes('height: auto !important'));
+  assert.ok(theme.includes('line-height: 1.3 !important'));
+  assert.ok(theme.includes('grid-template-columns: minmax(0,1fr) 24px'));
 });
 
 test("comparison evidence is integrated into the planning range",()=>{
@@ -169,6 +186,12 @@ test("Step 3 does not present blank financial inputs as zero exposure",()=>{
   assert.ok(journey.includes('const hasFinancialInput=[plan.fixed,plan.labor,plan.inventory,plan.margin].some(value=>value>0)'));
   assert.ok(journey.includes('hasFinancialInput?money(daily*item.days+Math.max(0,plan.inventory)):"Not calculated"'));
   assert.ok(journey.includes('Enter at least one cost above to calculate this estimate.'));
+});
+
+test("Step 4 uses a quiet empty state for financial assumptions",()=>{
+  assert.ok(journey.includes('value>0?money(value):"—"'));
+  assert.ok(!journey.includes(':"Not entered"'));
+  assert.ok(!journey.includes(':"Not provided"'));
 });
 
 test("print view and semantic status tokens exist",()=>{
