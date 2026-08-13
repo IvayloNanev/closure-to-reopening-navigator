@@ -1,4 +1,4 @@
-const CACHE="six-days-offline-v2";
+const CACHE="six-days-offline-v3";
 
 self.addEventListener("install",event=>{
   event.waitUntil(caches.open(CACHE).then(cache=>cache.add("/")));

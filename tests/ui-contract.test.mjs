@@ -7,6 +7,7 @@ const chapters=await readFile(new URL("../app/BookChapters.tsx",import.meta.url)
 const theme=await readFile(new URL("../app/theme.css",import.meta.url),"utf8");
 const inspections=await readFile(new URL("../lib/inspections.ts",import.meta.url),"utf8");
 const serviceWorker=await readFile(new URL("../public/six-days-sw.js",import.meta.url),"utf8");
+const offlineSample=await readFile(new URL("../lib/offline-sample.ts",import.meta.url),"utf8");
 
 test("search exposes combobox state and keyboard controls",()=>{
   for(const token of ['role="combobox"','aria-expanded','aria-controls','aria-activedescendant','ArrowDown','ArrowUp','Escape'])assert.ok(journey.includes(token),token);
@@ -41,7 +42,7 @@ test("comparison markers retain a coordinate projection without boundary geometr
 
 test("NYC map geometry bypasses the framework response-size cache",()=>{
   assert.ok(inspections.includes('fetch(BOROUGH_BOUNDARIES, { cache: "no-store" })'));
-  assert.ok(serviceWorker.includes('six-days-offline-v2'));
+  assert.ok(serviceWorker.includes('six-days-offline-v3'));
 });
 
 test("small samples and overlapping locations have explicit treatments",()=>{
@@ -70,6 +71,35 @@ test("the sample journey has a bundled offline dataset",()=>{
   assert.ok(journey.includes('navigator.serviceWorker.register("/six-days-sw.js")'));
 });
 
+test("the selected sample represents a currently closed restaurant",()=>{
+  assert.ok(offlineSample.includes('activeClosure("90000001","SIX DAYS SAMPLE KITCHEN"'));
+  assert.ok(offlineSample.includes('reopening:null'));
+  assert.ok(journey.includes('setLatest([saved.closure])'));
+});
+
+test("the full sample comparison remains available without the live API",()=>{
+  for(const record of [
+    'episode("90000002","SAMPLE CAFE NORTH","Manhattan","2026-05-04","2026-05-06",2',
+    'episode("90000003","SAMPLE TABLE EAST","Manhattan","2026-04-10","2026-04-14",4',
+    'episode("90000004","SAMPLE GRILL SOUTH","Manhattan","2026-03-02","2026-03-07",5',
+    'episode("90000005","SAMPLE DELI WEST","Manhattan","2026-02-12","2026-02-19",7',
+  ])assert.ok(offlineSample.includes(record),record);
+  assert.ok(offlineSample.includes('item.reopening?[item.closure,item.reopening]:[item.closure]'));
+  assert.ok(journey.includes('setComparisonData(bundledData)'));
+});
+
+test("the complete match stays within the selected restaurant borough",()=>{
+  assert.ok(journey.includes('scope:"borough",boroughOverride:selected.borough'));
+  assert.ok(journey.includes('find closures in the same borough with the exact same complete code set'));
+  assert.equal((offlineSample.match(/"Manhattan"/g)??[]).length,5);
+});
+
+test("Step 3 identifies every exact record used in its analysis",()=>{
+  assert.ok(journey.includes('EXACT MATCHES USED IN STEP 3'));
+  assert.ok(journey.includes('Exact closure records used in the comparison'));
+  assert.ok(journey.includes('These exact records—not every NYC closure—are the evidence used'));
+});
+
 test("restaurant verification and historical comparisons disclose different freshness",()=>{
   assert.ok(journey.includes('cache:"no-store"'));
   assert.ok(journey.includes('DIRECT NYC REQUEST'));
@@ -87,6 +117,13 @@ test("comparison evidence is integrated into the planning range",()=>{
 
 test("violation evidence appears before financial planning",()=>{
   assert.ok(theme.indexOf('.comparison-results-page > .violation-paths { order: 8; }') < theme.indexOf('.comparison-results-page > .scenario-calculator { order: 9; }'));
+});
+
+test("violation persistence includes restaurant-level recorded time",()=>{
+  assert.ok(journey.includes('className="timed-stage"'));
+  assert.ok(journey.includes('`Median ${median(days)} days`'));
+  assert.ok(journey.includes('`Range ${days[0]}–${days.at(-1)} days`'));
+  assert.ok(journey.includes('do not prove how long a violation took to correct'));
 });
 
 test("historical evidence scenarios section is removed",()=>{
